@@ -1,0 +1,24 @@
+{
+  "name": "agent-kit",
+  "version": "0.1.0",
+  "description": "Model, run and extend LeanScope choreos from your coding agent, on your own repository and LLM keys.",
+  "author": { "name": "LeanScope", "url": "https://github.com/leanscope" },
+  "homepage": "https://github.com/leanscope/agent-kit",
+  "repository": "https://github.com/leanscope/agent-kit",
+  "license": "MIT",
+  "keywords": ["leanscope", "choreo", "agents", "personas", "mcp"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "LeanScope Agent Kit",
+    "shortDescription": "Model and run LeanScope choreos with your own keys",
+    "longDescription": "Author choreos — scripted conversations between AI personas and humans — in your LeanScope repository, run and test them on the hosted agent server with your own LLM keys, and write workers that extend them.",
+    "developerName": "LeanScope",
+    "category": "Developer Tools",
+    "capabilities": ["Interactive", "Read", "Write"],
+    "defaultPrompt": [
+      "Set up LeanScope in this project.",
+      "Run my interview choreo and let me answer the questions."
+    ],
+    "websiteURL": "https://github.com/leanscope/agent-kit"
+  }
+}

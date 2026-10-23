@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "leanscope-graphql": {
+      "type": "http",
+      "url": "${LEANSCOPE_MCP_URL:-https://mcp.leanscope.ai}/mcp/graphql-v2/${LEANSCOPE_REPOSITORY_ID}",
+      "headers": { "Authorization": "Bearer ${LEANSCOPE_ACCESS_TOKEN}" }
+    },
+    "leanscope-agents": {
+      "type": "http",
+      "url": "${LEANSCOPE_MCP_URL:-https://mcp.leanscope.ai}/mcp/agents",
+      "headers": {
+        "Authorization": "Bearer ${LEANSCOPE_ACCESS_TOKEN}",
+        "X-LeanScope-Key-OpenAI": "${LEANSCOPE_OPENAI_API_KEY:-}",
+        "X-LeanScope-Key-Anthropic": "${LEANSCOPE_ANTHROPIC_API_KEY:-}",
+        "X-LeanScope-Key-Mistral": "${LEANSCOPE_MISTRAL_API_KEY:-}",
+        "X-LeanScope-Key-ElevenLabs": "${LEANSCOPE_ELEVENLABS_API_KEY:-}"
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "leanscope",
+  "owner": { "name": "LeanScope" },
+  "plugins": [
+    {
+      "name": "agent-kit",
+      "source": "./",
+      "description": "Model, run and extend LeanScope choreos from your coding agent.",
+      "version": "0.1.0"
+    }
+  ]
+}
