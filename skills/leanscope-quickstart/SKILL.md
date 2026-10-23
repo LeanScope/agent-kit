@@ -15,43 +15,75 @@ hosted agent server. This kit lets you, a coding agent, do three things for the 
 | try it out, answer it turn by turn, debug it         | `run-a-choreo`   | `leanscope-agents`  |
 | let a step call their own code                       | `write-a-worker` | both                |
 
-Everything runs **as the user**: their LeanScope repository, their access token, their own LLM keys.
+Everything runs **as the user**: their LeanScope repository, their personal team-repos access token, their own LLM keys.
 Nothing is billed to anyone else, and the engine never stores their keys.
 
-## 1. Check the connection
+## 1. Check the connection, server by server
 
-Look at your available tools.
+Check each server on its own and report each one by name. Never say just "the tools aren't
+available".
 
-- `leanscope-admin` is connected when you can call `get_credential_permissions`.
-- `leanscope-graphql` is connected when you can call `search_schema`.
-- `leanscope-agents` is connected when you can call `session_start`.
+| Server              | Connected when you can call…  |
+| ------------------- | ----------------------------- |
+| `leanscope-admin`   | `get_credential_permissions`  |
+| `leanscope-graphql` | `search_schema`               |
+| `leanscope-agents`  | `session_start`               |
 
-If all three are there, go to step 3.
+Each server is in one of three states:
 
-## 2. Fix what is missing — the "batteries"
+- **connected**: its tool answers.
+- **not configured in this client**: its tools aren't there at all. Go to step 2.
+- **configured but failing**: the tool exists but the call fails. Name the cause:
+  - **401**: the token is missing or wrong (step 2, secrets).
+  - **404 / "Unknown MCP channel"**: that channel isn't deployed on the host. Nothing the user can
+    fix. Say so and carry on with the other servers.
+  - **network error / timeout**: the host isn't reachable from here.
 
-The kit needs these in the user's environment (`.env.example` lists them). **Never ask the user to
-paste a token or key into the chat**, and never write one into a file. Tell them where to set it.
+You don't need all three to make progress. `leanscope-graphql` alone is enough to read and model
+a choreo once you have the repository id (step 3). `leanscope-agents` is needed only to run one.
 
-| Variable                                                                                                    | What                                                                         |
-| ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `LEANSCOPE_PERSONAL_TEAM_REPOS_ACCESS_TOKEN`                                                                                    | their LeanScope repository access token                                      |
+If all three are connected, go to step 3.
+
+## 2. Fix what is missing
+
+**Never ask the user to paste a token or key into the chat**, and never write one into a file. Tell
+them where the client takes it.
+
+First find out **which client and which session type** they are in, if you can't tell. GitHub
+Copilot in VS Code has two session types with separate setups: *Agent* (local, reads
+`.vscode/mcp.json`) and *Copilot CLI* (reads `~/.copilot/mcp-config.json`, never
+`.vscode/mcp.json`). Then give that client's fix. The setup script runs from the kit's folder,
+`--project` is their project.
+
+| Client                    | Fix                                                                                  | Secrets                                                                                     |
+| ------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------- |
+| Claude Code               | install or update the plugin (`/plugin install agent-kit@leanscope`)                 | asked at install, kept in the OS credential store; change them with `/plugin configure agent-kit@leanscope` |
+| VS Code, *Agent* sessions | `node scripts/setup-mcp.mjs --project <dir> --clients vscode`                        | VS Code asks once when a server starts and stores them encrypted                            |
+| Copilot CLI (also in VS Code) | `node scripts/setup-mcp.mjs --clients copilot-cli`                               | environment variables                                                                       |
+| Codex                     | `node scripts/setup-mcp.mjs --project <dir> --clients codex` (trusted projects only) | environment variables                                                                       |
+| Cursor                    | `node scripts/setup-mcp.mjs --project <dir> --clients cursor`                        | environment variables                                                                       |
+
+Where a client reads the environment, these are the variables (`.env.example` lists them). They go
+in the shell profile (`~/.zshrc`, `~/.bashrc`), and the client is then restarted from a new
+terminal. A project `.env` is not read by any MCP client.
+
+| Variable                                                                                                               | What                                                              |
+| ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `LEANSCOPE_PERSONAL_TEAM_REPOS_ACCESS_TOKEN`                                                                           | their LeanScope personal team-repos access token                  |
 | `LEANSCOPE_OPENAI_API_KEY`, `LEANSCOPE_ANTHROPIC_API_KEY`, `LEANSCOPE_MISTRAL_API_KEY`, `LEANSCOPE_ELEVENLABS_API_KEY` | their own LLM keys; at least one completion model to run a choreo |
 
-Then the MCP configuration, per agent:
-
-- **Claude Code** — nothing to write; the plugin ships it. Variables must be set in the shell that
-  starts Claude Code; restart it after changing them.
-- **GitHub Copilot (VS Code), Cursor, Codex** — run, from the kit's folder:
-  `node scripts/setup-mcp.mjs --project <their project>` (add `--vendors vscode` etc. to limit it).
-  It writes `.vscode/mcp.json`, `.cursor/mcp.json` and `.codex/config.toml`, each only
-  *referencing* the variables. VS Code and Cursor read variables from the environment the editor was
-  started from — on macOS, start it from a terminal (`code .`) if a variable seems missing.
+After a change to the MCP configuration, the client has to reload its servers (a new session, or a
+restart) before the tools show up.
 
 ## 3. Get the repository id
 
-Call `get_credential_permissions` on leanscope-admin once. An access token returns one repository
-id; pass it as `repositoryId` to every leanscope-graphql tool. Never ask the user for it.
+Pass the id as `repositoryId` to every `leanscope-graphql` tool. In this order:
+
+1. **The user named one** ("repository 2067"): use it. Don't call `leanscope-admin` for it.
+2. Otherwise call `get_credential_permissions` on `leanscope-admin` once. A personal team-repos
+   access token returns one repository id.
+3. If `leanscope-admin` isn't reachable, ask the user for the id **once**, and say why ("I can't
+   reach leanscope-admin: <cause>, so I can't look it up"). Then carry on.
 
 ## 4. Find out what they want
 
@@ -61,6 +93,6 @@ it: with `leanscope-graphql`, list the repository's scenarios by name (`search_s
 
 ## Verify
 
-Before handing over, all three servers answer: `get_credential_permissions` returns the repository
-id, `search_schema` returns entries, and the user knows which choreo (scenario `_guid`) you are
-working on.
+Before handing over: you have a repository id, `search_schema` returns entries, the user knows the
+state of each server you checked (and the cause for any that failed), and they know which choreo
+(scenario `_guid`) you are working on.

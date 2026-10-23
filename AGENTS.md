@@ -20,6 +20,8 @@ Rules that always apply:
 
 - Never ask for, accept, print or write a token or API key. They come from the user's environment
   (`.env.example` lists the names) through the MCP configuration.
+- The repository id: the one the user names wins; otherwise ask `get_credential_permissions`; if
+  `leanscope-admin` is unreachable, ask the user for the id once and say why.
 - Never send `action: "UPDATE"` to the LeanScope API; omit `action` (see
   `skills/model-a-choreo/reference/write-rules.md`).
 - Preview every repository write before applying it, and read it back afterwards.

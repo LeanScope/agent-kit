@@ -2,10 +2,87 @@
   "name": "agent-kit",
   "displayName": "LeanScope Agent Kit",
   "description": "Model, run and extend LeanScope choreos — scripted conversations between AI personas and humans — from your coding agent, on your own LeanScope repository and your own LLM keys.",
-  "version": "0.1.1",
-  "author": { "name": "LeanScope" },
+  "version": "0.2.0",
+  "author": {
+    "name": "LeanScope"
+  },
   "homepage": "https://github.com/leanscope/agent-kit",
   "repository": "https://github.com/leanscope/agent-kit",
   "license": "MIT",
-  "keywords": ["leanscope", "choreo", "agents", "personas", "conversation", "mcp"]
+  "keywords": [
+    "leanscope",
+    "choreo",
+    "agents",
+    "personas",
+    "conversation",
+    "mcp"
+  ],
+  "userConfig": {
+    "token": {
+      "type": "string",
+      "title": "LeanScope personal team-repos access token",
+      "description": "Names the LeanScope repository your choreos live in. Stored in your OS credential store.",
+      "sensitive": true,
+      "required": true
+    },
+    "openai": {
+      "type": "string",
+      "title": "OpenAI API key",
+      "description": "Optional. Sent to the agent server per session, never stored there. Leave empty if your choreos don't use it.",
+      "sensitive": true,
+      "required": false,
+      "default": ""
+    },
+    "anthropic": {
+      "type": "string",
+      "title": "Anthropic API key",
+      "description": "Optional. Sent to the agent server per session, never stored there. Leave empty if your choreos don't use it.",
+      "sensitive": true,
+      "required": false,
+      "default": ""
+    },
+    "mistral": {
+      "type": "string",
+      "title": "Mistral API key",
+      "description": "Optional. Sent to the agent server per session, never stored there. Leave empty if your choreos don't use it.",
+      "sensitive": true,
+      "required": false,
+      "default": ""
+    },
+    "elevenlabs": {
+      "type": "string",
+      "title": "ElevenLabs API key",
+      "description": "Optional. Sent to the agent server per session, never stored there. Leave empty if your choreos don't use it.",
+      "sensitive": true,
+      "required": false,
+      "default": ""
+    }
+  },
+  "mcpServers": {
+    "leanscope-admin": {
+      "type": "http",
+      "url": "https://dev.mcp.leanscope.ai/mcp/admin",
+      "headers": {
+        "Authorization": "Bearer ${user_config.token}"
+      }
+    },
+    "leanscope-graphql": {
+      "type": "http",
+      "url": "https://dev.mcp.leanscope.ai/mcp/graphql-v2",
+      "headers": {
+        "Authorization": "Bearer ${user_config.token}"
+      }
+    },
+    "leanscope-agents": {
+      "type": "http",
+      "url": "https://dev.mcp.leanscope.ai/mcp/agents",
+      "headers": {
+        "Authorization": "Bearer ${user_config.token}",
+        "X-LeanScope-Key-OpenAI": "${user_config.openai}",
+        "X-LeanScope-Key-Anthropic": "${user_config.anthropic}",
+        "X-LeanScope-Key-Mistral": "${user_config.mistral}",
+        "X-LeanScope-Key-ElevenLabs": "${user_config.elevenlabs}"
+      }
+    }
+  }
 }
