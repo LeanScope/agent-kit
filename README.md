@@ -25,7 +25,7 @@ Never paste them into a chat.
 
 | Variable | |
 | --- | --- |
-| `LEANSCOPE_ACCESS_TOKEN` | your LeanScope repository access token |
+| `LEANSCOPE_PERSONAL_TEAM_REPOS_ACCESS_TOKEN` | your LeanScope repository access token |
 | `LEANSCOPE_OPENAI_API_KEY` | your OpenAI key (also needed for live voice calls) |
 | `LEANSCOPE_ANTHROPIC_API_KEY`, `LEANSCOPE_MISTRAL_API_KEY`, `LEANSCOPE_ELEVENLABS_API_KEY` | optional, as your choreos need them |
 

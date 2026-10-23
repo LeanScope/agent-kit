@@ -35,7 +35,7 @@ paste a token or key into the chat**, and never write one into a file. Tell them
 
 | Variable                                                                                                    | What                                                                         |
 | ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `LEANSCOPE_ACCESS_TOKEN`                                                                                    | their LeanScope repository access token                                      |
+| `LEANSCOPE_PERSONAL_TEAM_REPOS_ACCESS_TOKEN`                                                                                    | their LeanScope repository access token                                      |
 | `LEANSCOPE_OPENAI_API_KEY`, `LEANSCOPE_ANTHROPIC_API_KEY`, `LEANSCOPE_MISTRAL_API_KEY`, `LEANSCOPE_ELEVENLABS_API_KEY` | their own LLM keys; at least one completion model to run a choreo |
 
 Then the MCP configuration, per agent:

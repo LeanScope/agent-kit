@@ -2,7 +2,7 @@
 
 ## 0.1.1 — 2026-10-23
 
-- **One LeanScope variable.** Setup needs only `LEANSCOPE_ACCESS_TOKEN`, a repository access
+- **One LeanScope variable.** Setup needs only `LEANSCOPE_PERSONAL_TEAM_REPOS_ACCESS_TOKEN`, a repository access
   token. The agent works out the repository from the token, so `LEANSCOPE_REPOSITORY_ID` is gone.
   `LEANSCOPE_MCP_URL` is gone too: the kit always connects to `https://mcp.leanscope.ai`.
   - **To do:** remove both variables from your environment, then rerun

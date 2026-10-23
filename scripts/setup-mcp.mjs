@@ -37,18 +37,18 @@ function envServers(withType) {
     'leanscope-admin': {
       ...type,
       url: `${MCP_URL}/mcp/admin`,
-      headers: { Authorization: 'Bearer ${env:LEANSCOPE_ACCESS_TOKEN}' },
+      headers: { Authorization: 'Bearer ${env:LEANSCOPE_PERSONAL_TEAM_REPOS_ACCESS_TOKEN}' },
     },
     'leanscope-graphql': {
       ...type,
       url: `${MCP_URL}/mcp/graphql-v2`,
-      headers: { Authorization: 'Bearer ${env:LEANSCOPE_ACCESS_TOKEN}' },
+      headers: { Authorization: 'Bearer ${env:LEANSCOPE_PERSONAL_TEAM_REPOS_ACCESS_TOKEN}' },
     },
     'leanscope-agents': {
       ...type,
       url: `${MCP_URL}/mcp/agents`,
       headers: {
-        Authorization: 'Bearer ${env:LEANSCOPE_ACCESS_TOKEN}',
+        Authorization: 'Bearer ${env:LEANSCOPE_PERSONAL_TEAM_REPOS_ACCESS_TOKEN}',
         ...Object.fromEntries(
           Object.entries(KEY_HEADERS).map(([header, env]) => [header, `\${env:${env}}`]),
         ),
@@ -79,15 +79,15 @@ function codexBlock() {
     BEGIN,
     '[mcp_servers.leanscope-admin]',
     `url = "${MCP_URL}/mcp/admin"`,
-    'bearer_token_env_var = "LEANSCOPE_ACCESS_TOKEN"',
+    'bearer_token_env_var = "LEANSCOPE_PERSONAL_TEAM_REPOS_ACCESS_TOKEN"',
     '',
     '[mcp_servers.leanscope-graphql]',
     `url = "${MCP_URL}/mcp/graphql-v2"`,
-    'bearer_token_env_var = "LEANSCOPE_ACCESS_TOKEN"',
+    'bearer_token_env_var = "LEANSCOPE_PERSONAL_TEAM_REPOS_ACCESS_TOKEN"',
     '',
     '[mcp_servers.leanscope-agents]',
     `url = "${MCP_URL}/mcp/agents"`,
-    'bearer_token_env_var = "LEANSCOPE_ACCESS_TOKEN"',
+    'bearer_token_env_var = "LEANSCOPE_PERSONAL_TEAM_REPOS_ACCESS_TOKEN"',
     `env_http_headers = { ${headers} }`,
     END,
   ].join('\n');
@@ -137,7 +137,7 @@ for (const vendor of vendors) {
   }
 }
 
-const missing = ['LEANSCOPE_ACCESS_TOKEN'].filter(
+const missing = ['LEANSCOPE_PERSONAL_TEAM_REPOS_ACCESS_TOKEN'].filter(
   (name) => !process.env[name]?.trim(),
 );
 if (missing.length > 0) {
