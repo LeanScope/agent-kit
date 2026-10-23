@@ -46,6 +46,9 @@ Keep the path hard to guess (`WORKER_PATH`): anyone who knows the URL can call i
 
 ## 4. Register and attach it (`leanscope-graphql`, read `model-a-choreo` write rules first)
 
+Pass the repository id from `leanscope-quickstart` step 3 as `repositoryId` to every
+`leanscope-graphql` tool.
+
 1. A worker resource `W` (equipment) whose `parameters` declare its arguments — each
    `{ _guid: <new UUID>, key: "<argument>", value: "<what it means>" }`.
 2. Its kind binding `W --IS--> dbf0ecbb-1e96-4644-9d90-a6c5930b7e5b` with `parameterOverrides`:

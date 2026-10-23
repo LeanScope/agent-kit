@@ -6,10 +6,9 @@
 //   node scripts/setup-mcp.mjs [--project <dir>] [--vendors vscode,cursor,codex] [--dry-run]
 //
 // Every server entry REFERENCES your environment variables (see `.env.example`) — no token or key is
-// ever written into a file. The one exception is Codex, which cannot read an environment variable
-// inside a URL: its graphql-v2 URL carries your repository id (an id, not a secret).
+// ever written into a file.
 //
-// Existing configuration is kept: only the two `leanscope-*` servers are added or replaced.
+// Existing configuration is kept: only the three `leanscope-*` servers are added or replaced.
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -22,7 +21,7 @@ const option = (name, fallback) => {
 const project = resolve(option('project', process.cwd()));
 const vendors = option('vendors', 'vscode,cursor,codex').split(',').map((v) => v.trim());
 const dryRun = args.includes('--dry-run');
-const mcpUrl = (process.env.LEANSCOPE_MCP_URL ?? 'https://mcp.leanscope.ai').replace(/\/+$/, '');
+const MCP_URL = 'https://mcp.leanscope.ai';
 
 const KEY_HEADERS = {
   'X-LeanScope-Key-OpenAI': 'LEANSCOPE_OPENAI_API_KEY',
@@ -31,18 +30,23 @@ const KEY_HEADERS = {
   'X-LeanScope-Key-ElevenLabs': 'LEANSCOPE_ELEVENLABS_API_KEY',
 };
 
-/** The two servers, for clients that read `${env:NAME}` (VS Code, Cursor). */
+/** The three servers, for clients that read `${env:NAME}` (VS Code, Cursor). */
 function envServers(withType) {
   const type = withType ? { type: 'http' } : {};
   return {
+    'leanscope-admin': {
+      ...type,
+      url: `${MCP_URL}/mcp/admin`,
+      headers: { Authorization: 'Bearer ${env:LEANSCOPE_ACCESS_TOKEN}' },
+    },
     'leanscope-graphql': {
       ...type,
-      url: `${mcpUrl}/mcp/graphql-v2/\${env:LEANSCOPE_REPOSITORY_ID}`,
+      url: `${MCP_URL}/mcp/graphql-v2`,
       headers: { Authorization: 'Bearer ${env:LEANSCOPE_ACCESS_TOKEN}' },
     },
     'leanscope-agents': {
       ...type,
-      url: `${mcpUrl}/mcp/agents`,
+      url: `${MCP_URL}/mcp/agents`,
       headers: {
         Authorization: 'Bearer ${env:LEANSCOPE_ACCESS_TOKEN}',
         ...Object.fromEntries(
@@ -68,24 +72,21 @@ const BEGIN = '# >>> leanscope agent-kit (managed by scripts/setup-mcp.mjs) >>>'
 const END = '# <<< leanscope agent-kit <<<';
 
 function codexBlock() {
-  const repositoryId = process.env.LEANSCOPE_REPOSITORY_ID?.trim();
-  if (!repositoryId) {
-    throw new Error(
-      'Codex needs LEANSCOPE_REPOSITORY_ID in the environment while this script runs: it cannot ' +
-        'read an environment variable inside a URL.',
-    );
-  }
   const headers = Object.entries(KEY_HEADERS)
     .map(([header, env]) => `"${header}" = "${env}"`)
     .join(', ');
   return [
     BEGIN,
+    '[mcp_servers.leanscope-admin]',
+    `url = "${MCP_URL}/mcp/admin"`,
+    'bearer_token_env_var = "LEANSCOPE_ACCESS_TOKEN"',
+    '',
     '[mcp_servers.leanscope-graphql]',
-    `url = "${mcpUrl}/mcp/graphql-v2/${repositoryId}"`,
+    `url = "${MCP_URL}/mcp/graphql-v2"`,
     'bearer_token_env_var = "LEANSCOPE_ACCESS_TOKEN"',
     '',
     '[mcp_servers.leanscope-agents]',
-    `url = "${mcpUrl}/mcp/agents"`,
+    `url = "${MCP_URL}/mcp/agents"`,
     'bearer_token_env_var = "LEANSCOPE_ACCESS_TOKEN"',
     `env_http_headers = { ${headers} }`,
     END,
@@ -136,7 +137,7 @@ for (const vendor of vendors) {
   }
 }
 
-const missing = ['LEANSCOPE_ACCESS_TOKEN', 'LEANSCOPE_REPOSITORY_ID'].filter(
+const missing = ['LEANSCOPE_ACCESS_TOKEN'].filter(
   (name) => !process.env[name]?.trim(),
 );
 if (missing.length > 0) {

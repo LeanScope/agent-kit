@@ -25,8 +25,7 @@ Never paste them into a chat.
 
 | Variable | |
 | --- | --- |
-| `LEANSCOPE_ACCESS_TOKEN` | your LeanScope access token (repository token or personal service token) |
-| `LEANSCOPE_REPOSITORY_ID` | the repository your choreos live in |
+| `LEANSCOPE_ACCESS_TOKEN` | your LeanScope repository access token |
 | `LEANSCOPE_OPENAI_API_KEY` | your OpenAI key (also needed for live voice calls) |
 | `LEANSCOPE_ANTHROPIC_API_KEY`, `LEANSCOPE_MISTRAL_API_KEY`, `LEANSCOPE_ELEVENLABS_API_KEY` | optional, as your choreos need them |
 
@@ -41,7 +40,7 @@ At least one completion-model key is needed to run a choreo.
 /plugin install agent-kit@leanscope
 ```
 
-The plugin brings both MCP servers. Start Claude Code from a shell where the variables are set.
+The plugin brings all three MCP servers. Start Claude Code from a shell where the variables are set.
 
 ### GitHub Copilot in VS Code
 
@@ -59,7 +58,7 @@ The plugin brings both MCP servers. Start Claude Code from a shell where the var
 1. `codex plugin marketplace add leanscope/agent-kit`, then install **agent-kit** from `/plugins`
    (CLI). In the IDE extension, plugins are not available yet: clone this repository and copy
    `skills/*` into your project's `.agents/skills/`.
-2. `LEANSCOPE_REPOSITORY_ID=<id> node <path-to-agent-kit>/scripts/setup-mcp.mjs --project . --vendors codex`
+2. `node <path-to-agent-kit>/scripts/setup-mcp.mjs --project . --vendors codex`
    → writes the `[mcp_servers.leanscope-*]` block into `.codex/config.toml` (trusted projects only).
    Tokens and keys are read from your environment (`bearer_token_env_var`, `env_http_headers`).
 
@@ -72,7 +71,7 @@ The plugin brings both MCP servers. Start Claude Code from a shell where the var
 
 ## 3. First steps
 
-Ask your agent: *"Set up LeanScope in this project."* — the quickstart skill checks both servers and
+Ask your agent: *"Set up LeanScope in this project."* — the quickstart skill checks the servers and
 tells you what is missing. Then, for example:
 
 - *"Show me the choreos in my repository."*
@@ -83,7 +82,8 @@ tells you what is missing. Then, for example:
 ## How it fits together
 
 ```
-your coding agent ──MCP──▶ leanscope-graphql  ──▶ your LeanScope repository   (model)
+your coding agent ──MCP──▶ leanscope-admin    ──▶ which repository your token names
+                  ├─MCP──▶ leanscope-graphql  ──▶ your LeanScope repository   (model)
                   └─MCP──▶ leanscope-agents   ──▶ hosted agent server        (run, your keys)
                                                         │
                                                         └──HTTP──▶ your worker  (optional)

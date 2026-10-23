@@ -8,7 +8,8 @@ description: Use when the user wants to create, extend or change a LeanScope cho
 A choreo is data in the user's LeanScope repository: a **Scenario** with **ScenarioSteps**, the
 **Personas** who speak, and **resources** (questions, configuration, theme, workers) attached by
 **ResourceRelationships**. You write it with the `leanscope-graphql` MCP server; the hosted agent
-server runs it (skill `run-a-choreo`).
+server runs it (skill `run-a-choreo`). Pass the repository id from `leanscope-quickstart` step 3
+as `repositoryId` to every `leanscope-graphql` tool.
 
 Read these before writing anything — they are short and they are the contract:
 

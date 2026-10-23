@@ -22,10 +22,11 @@ Nothing is billed to anyone else, and the engine never stores their keys.
 
 Look at your available tools.
 
+- `leanscope-admin` is connected when you can call `get_credential_permissions`.
 - `leanscope-graphql` is connected when you can call `search_schema`.
 - `leanscope-agents` is connected when you can call `session_start`.
 
-If both are there, go to step 3.
+If all three are there, go to step 3.
 
 ## 2. Fix what is missing — the "batteries"
 
@@ -34,8 +35,7 @@ paste a token or key into the chat**, and never write one into a file. Tell them
 
 | Variable                                                                                                    | What                                                                         |
 | ----------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| `LEANSCOPE_ACCESS_TOKEN`                                                                                    | their LeanScope access token (repository token or personal service token)    |
-| `LEANSCOPE_REPOSITORY_ID`                                                                                   | the id of the repository their choreos live in                               |
+| `LEANSCOPE_ACCESS_TOKEN`                                                                                    | their LeanScope repository access token                                      |
 | `LEANSCOPE_OPENAI_API_KEY`, `LEANSCOPE_ANTHROPIC_API_KEY`, `LEANSCOPE_MISTRAL_API_KEY`, `LEANSCOPE_ELEVENLABS_API_KEY` | their own LLM keys; at least one completion model to run a choreo |
 
 Then the MCP configuration, per agent:
@@ -48,7 +48,12 @@ Then the MCP configuration, per agent:
   *referencing* the variables. VS Code and Cursor read variables from the environment the editor was
   started from — on macOS, start it from a terminal (`code .`) if a variable seems missing.
 
-## 3. Find out what they want
+## 3. Get the repository id
+
+Call `get_credential_permissions` on leanscope-admin once. An access token returns one repository
+id; pass it as `repositoryId` to every leanscope-graphql tool. Never ask the user for it.
+
+## 4. Find out what they want
 
 Ask what the choreo should achieve, for whom, and whether one exists already. If they have one, find
 it: with `leanscope-graphql`, list the repository's scenarios by name (`search_schema` first, then
@@ -56,5 +61,6 @@ it: with `leanscope-graphql`, list the repository's scenarios by name (`search_s
 
 ## Verify
 
-Before handing over, both servers answer: `search_schema` returns entries, and the user knows which
-choreo (scenario `_guid`) you are working on.
+Before handing over, all three servers answer: `get_credential_permissions` returns the repository
+id, `search_schema` returns entries, and the user knows which choreo (scenario `_guid`) you are
+working on.

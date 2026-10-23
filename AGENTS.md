@@ -13,7 +13,8 @@ user mentions LeanScope, choreos or this kit, or when a `leanscope-*` MCP tool i
 | `skills/run-a-choreo` | run, test or debug a choreo |
 | `skills/write-a-worker` | let a step call the user's code |
 
-Two MCP servers: `leanscope-graphql` (read/write the repository) and `leanscope-agents` (run sessions).
+Three MCP servers: `leanscope-admin` (which repository the token names), `leanscope-graphql`
+(read/write the repository) and `leanscope-agents` (run sessions).
 
 Rules that always apply:
 
