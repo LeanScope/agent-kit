@@ -4,7 +4,7 @@
 
 - **One LeanScope variable.** Setup needs only `LEANSCOPE_PERSONAL_TEAM_REPOS_ACCESS_TOKEN`, a repository access
   token. The agent works out the repository from the token, so `LEANSCOPE_REPOSITORY_ID` is gone.
-  `LEANSCOPE_MCP_URL` is gone too: the kit always connects to `https://mcp.leanscope.ai`.
+  `LEANSCOPE_MCP_URL` is gone too: the kit always connects to `https://dev.mcp.leanscope.ai`.
   - **To do:** remove both variables from your environment, then rerun
     `scripts/setup-mcp.mjs` for your agent as the README describes (or update the plugin) to pick
     up the new `leanscope-admin` server.

@@ -21,7 +21,7 @@ const option = (name, fallback) => {
 const project = resolve(option('project', process.cwd()));
 const vendors = option('vendors', 'vscode,cursor,codex').split(',').map((v) => v.trim());
 const dryRun = args.includes('--dry-run');
-const MCP_URL = 'https://mcp.leanscope.ai';
+const MCP_URL = 'https://dev.mcp.leanscope.ai';
 
 const KEY_HEADERS = {
   'X-LeanScope-Key-OpenAI': 'LEANSCOPE_OPENAI_API_KEY',
