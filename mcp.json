@@ -1,0 +1,41 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
+  "inputs": [
+    {
+      "type": "promptString",
+      "id": "leanscope-token",
+      "description": "LeanScope personal team-repos access token",
+      "password": true
+    },
+    {
+      "type": "promptString",
+      "id": "leanscope-openai",
+      "description": "OpenAI API key",
+      "password": true
+    }
+  ],
+  "mcpServers": {
+    "leanscope-admin": {
+      "type": "streamable-http",
+      "url": "https://dev.mcp.leanscope.ai/mcp/admin",
+      "headers": {
+        "Authorization": "Bearer ${input:leanscope-token}"
+      }
+    },
+    "leanscope-graphql": {
+      "type": "streamable-http",
+      "url": "https://dev.mcp.leanscope.ai/mcp/graphql-v2",
+      "headers": {
+        "Authorization": "Bearer ${input:leanscope-token}"
+      }
+    },
+    "leanscope-agents": {
+      "type": "streamable-http",
+      "url": "https://dev.mcp.leanscope.ai/mcp/agents",
+      "headers": {
+        "Authorization": "Bearer ${input:leanscope-token}",
+        "X-LeanScope-Key-OpenAI": "${input:leanscope-openai}"
+      }
+    }
+  }
+}
