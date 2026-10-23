@@ -3,3 +3,6 @@
 !.env.example
 node_modules/
 .DS_Store
+
+# Local plans and notes — never committed
+tasks/

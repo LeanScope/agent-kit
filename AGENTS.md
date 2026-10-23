@@ -23,3 +23,5 @@ Rules that always apply:
 - Never send `action: "UPDATE"` to the LeanScope API; omit `action` (see
   `skills/model-a-choreo/reference/write-rules.md`).
 - Preview every repository write before applying it, and read it back afterwards.
+
+Changing the kit itself, not using it? Follow `CONTRIBUTING.md`.
