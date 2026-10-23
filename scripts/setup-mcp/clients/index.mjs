@@ -8,6 +8,7 @@
 //   envSecrets(options)       the secrets it reads from the environment (for the missing check)
 //   after(options)            one line on what happens next
 
+import claudeCode from './claude-code.mjs';
 import claudePlugin from './claude-plugin.mjs';
 import codex from './codex.mjs';
 import copilotCli from './copilot-cli.mjs';
@@ -15,5 +16,5 @@ import cursor from './cursor.mjs';
 import vscode from './vscode.mjs';
 
 export const CLIENTS = Object.fromEntries(
-  [vscode, copilotCli, cursor, codex, claudePlugin].map((c) => [c.id, c]),
+  [vscode, copilotCli, cursor, codex, claudeCode, claudePlugin].map((c) => [c.id, c]),
 );

@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 // Connect your coding agent to LeanScope: writes the MCP configuration for one or more clients.
 //
+//   npx -y github:leanscope/agent-kit --clients <ids> [options]     (no clone needed)
 //   node scripts/setup-mcp.mjs --clients <ids> [--project <dir>] [--secrets prompt|env]
 //                              [--keys openai,anthropic,mistral,elevenlabs] [--dry-run]
 //
+//   --project  the user's project. Default: the current directory.
 //   --clients  vscode (Copilot Agent sessions), copilot-cli (writes ~/.copilot/mcp-config.json),
-//              cursor, codex. Default: vscode,cursor,codex.
+//              cursor, codex, claude-code (enables the kit's plugin in .claude/settings.json).
+//              Default: vscode,cursor,codex.
 //              `--vendors` is the old name and still works for this release.
 //   --secrets  prompt (default): the client asks for the token and keys and stores them itself,
 //              where it can (VS Code). env: reference environment variables (see `.env.example`).
@@ -16,8 +19,9 @@
 // No token or key is ever written into a file: entries only REFERENCE them. Existing configuration
 // is kept; only the `leanscope-*` servers (and their prompts) are added or replaced.
 //
-// Claude Code needs none of this: its plugin brings the servers and asks for the secrets. For kit
-// maintainers, `--clients claude-plugin` regenerates that plugin's manifest from the catalog.
+// Claude Code's plugin brings its own servers and asks for the secrets; `--clients claude-code`
+// only enables that plugin for the project. For kit maintainers, `--clients claude-plugin`
+// regenerates the plugin's manifest from the catalog.
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';

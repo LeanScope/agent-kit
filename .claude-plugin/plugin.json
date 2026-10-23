@@ -2,7 +2,7 @@
   "name": "agent-kit",
   "displayName": "LeanScope Agent Kit",
   "description": "Model, run and extend LeanScope choreos — scripted conversations between AI personas and humans — from your coding agent, on your own LeanScope repository and your own LLM keys.",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "author": {
     "name": "LeanScope"
   },
@@ -20,7 +20,7 @@
   "userConfig": {
     "token": {
       "type": "string",
-      "title": "LeanScope personal team-repos access token",
+      "title": "LeanScope personal team repos access token",
       "description": "Names the LeanScope repository your choreos live in. Stored in your OS credential store.",
       "sensitive": true,
       "required": true

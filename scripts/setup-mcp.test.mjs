@@ -13,7 +13,7 @@ import { fileURLToPath } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const script = join(here, 'setup-mcp.mjs');
-const HOST = 'https://dev.mcp.leanscope.ai';
+const { MCP_HOST: HOST, AGENT_API_DOCS, STAGE } = await import('./setup-mcp/catalog.mjs');
 
 /** Run the script in a fresh project dir (and a fresh HOME); returns { dir, home, out }. */
 function run(args, { dir = mkdtempSync(join(tmpdir(), 'setup-mcp-')), env = {} } = {}) {
@@ -182,6 +182,31 @@ test('copilot-cli writes the user-level config with ${VAR} headers and keeps oth
   );
 });
 
+// --- claude-code -------------------------------------------------------------------------------
+
+test('claude-code enables the kit plugin in .claude/settings.json and keeps other settings', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'setup-mcp-'));
+  mkdirSync(join(dir, '.claude'));
+  writeFileSync(
+    join(dir, '.claude', 'settings.json'),
+    JSON.stringify({ permissions: { allow: ['x'] }, enabledPlugins: { 'other@m': false } }),
+  );
+  const { out } = run(['--clients', 'claude-code'], { dir });
+  const settings = json(dir, '.claude', 'settings.json');
+  assert.deepEqual(settings.permissions, { allow: ['x'] });
+  assert.deepEqual(settings.enabledPlugins, { 'other@m': false, 'agent-kit@leanscope': true });
+  assert.deepEqual(settings.extraKnownMarketplaces, {
+    leanscope: { source: { source: 'github', repo: 'leanscope/agent-kit' } },
+  });
+  assert.doesNotMatch(read(dir, '.claude', 'settings.json'), /TOKEN|API_KEY/);
+  assert.match(out, /\/plugin configure agent-kit@leanscope/);
+});
+
+test('vscode says that Copilot CLI sessions need their own setup', () => {
+  const { out } = run(['--clients', 'vscode']);
+  assert.match(out, /Copilot CLI sessions need --clients copilot-cli/);
+});
+
 // --- the kit's own plugin manifests -------------------------------------------------------------
 
 test('the committed Claude Code plugin manifest is what the catalog generates', async () => {
@@ -210,9 +235,59 @@ test('every plugin manifest carries the same version', () => {
     json(kit, '.claude-plugin', 'marketplace.json').plugins[0].version,
     json(kit, '.codex-plugin', 'plugin.json').version,
     json(kit, '.cursor-plugin', 'plugin.json').version,
+    json(kit, 'package.json').version,
   ];
   assert.equal(new Set(versions).size, 1, versions.join(', '));
   assert.match(read(kit, 'RELEASES.md'), new RegExp(`## ${versions[0].replaceAll('.', '\\.')} `));
+});
+
+test('package.json runs the setup script, so `npx github:leanscope/agent-kit` needs no clone', () => {
+  const kit = join(here, '..');
+  const { bin, dependencies } = json(kit, 'package.json');
+  assert.deepEqual(Object.values(bin), ['scripts/setup-mcp.mjs']); // npx picks the only bin
+  assert.equal(dependencies, undefined);
+  assert.match(read(kit, 'scripts', 'setup-mcp.mjs'), /^#!\/usr\/bin\/env node\n/);
+});
+
+test('the token has one name everywhere: "personal team repos access token"', () => {
+  const kit = join(here, '..');
+  for (const file of [
+    'README.md',
+    '.env.example',
+    '.claude-plugin/plugin.json',
+    'scripts/setup-mcp/catalog.mjs',
+    'skills/leanscope-quickstart/SKILL.md',
+  ]) {
+    assert.doesNotMatch(read(kit, file), /team-repos|repository access token/i, file);
+  }
+});
+
+test('every LeanScope service URL uses the catalog STAGE (the one dev/prod switch)', () => {
+  const kit = join(here, '..');
+  // app.leanscope.ai is where users get their token: it has no stage.
+  const services = /https:\/\/((?:[a-z0-9-]+\.)*?)(mcp|api\.agents|agents)\.leanscope\.ai/g;
+  const files = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard'], {
+    cwd: kit,
+    encoding: 'utf8',
+  })
+    .split('\n')
+    .filter(Boolean)
+    .filter((f) => f !== 'RELEASES.md'); // history may name the old host
+  for (const file of files) {
+    let text;
+    try {
+      text = read(kit, file);
+    } catch {
+      continue; // deleted but still in the index
+    }
+    for (const [url, stage] of text.matchAll(services)) {
+      assert.equal(stage, STAGE, `${file}: ${url} — set the stage in scripts/setup-mcp/catalog.mjs only`);
+    }
+  }
+});
+
+test('the README links the agent API docs of the catalog stage', () => {
+  assert.ok(read(here, '..', 'README.md').includes(AGENT_API_DOCS), AGENT_API_DOCS);
 });
 
 test('the root plugin.json is Agent Plugins 1.0 and declares no servers', () => {

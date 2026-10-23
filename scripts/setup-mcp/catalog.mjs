@@ -1,8 +1,24 @@
-// The one place that says which LeanScope MCP servers exist, where they live, and which secret
-// each header carries. Every client writer renders this catalog in its own syntax.
+// The one place that says which LeanScope MCP servers exist, where they live (dev or prod), and
+// which secret each header carries. Every client writer renders this catalog in its own syntax.
 
-/** The MCP host. Dev until production serves every channel. */
-export const MCP_HOST = 'https://dev.mcp.leanscope.ai';
+/**
+ * THE dev/prod switch, and the only one in the kit. There is no production stage yet, so it is
+ * `dev.`; once production serves every channel, set it to `''`, then run
+ * `node scripts/setup-mcp.mjs --clients claude-plugin` and `npm test` (the tests name any other
+ * file that still points at the old stage).
+ */
+export const STAGE = 'dev.';
+
+/** The MCP host. */
+export const MCP_HOST = `https://${STAGE}mcp.leanscope.ai`;
+
+/** The agent server's REST API docs (linked from the README). */
+export const AGENT_API_DOCS = `https://${STAGE}api.agents.leanscope.ai/api/v1/docs`;
+
+/** Where the kit lives on GitHub, and its Claude Code marketplace and plugin names. */
+export const KIT_REPO = 'leanscope/agent-kit';
+export const MARKETPLACE = 'leanscope';
+export const PLUGIN = 'agent-kit';
 
 /**
  * The secrets the servers need. `id` is how writers refer to one; `env` is the variable name for
@@ -13,7 +29,7 @@ export const SECRETS = [
   {
     id: 'token',
     env: 'LEANSCOPE_PERSONAL_TEAM_REPOS_ACCESS_TOKEN',
-    label: 'LeanScope personal team-repos access token',
+    label: 'LeanScope personal team repos access token',
     required: true,
   },
   { id: 'openai', env: 'LEANSCOPE_OPENAI_API_KEY', label: 'OpenAI API key', required: false },

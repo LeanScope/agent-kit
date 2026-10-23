@@ -51,7 +51,8 @@ export default {
   envSecrets: (options) => (options.secrets === 'env' ? selectedSecrets(keysFor(options)) : []),
 
   after: (options) =>
-    options.secrets === 'env'
+    (options.secrets === 'env'
       ? 'VS Code reads the variables from the environment it was started from: start it from a terminal (`code .`).'
-      : 'VS Code asks for the token (and each key) once, when a server first starts, and stores them encrypted.',
+      : 'VS Code asks for the token (and each key) once, when a server first starts, and stores them encrypted.') +
+    ' This covers Copilot *Agent* sessions only; Copilot CLI sessions need --clients copilot-cli.',
 };

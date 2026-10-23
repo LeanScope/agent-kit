@@ -1,5 +1,23 @@
 # Release notes
 
+## 0.2.1 — 2026-10-23
+
+- **No clone needed for the setup.** `npx -y github:leanscope/agent-kit --clients <client>` runs
+  the setup script in your project. And you don't have to run it yourself: after installing the
+  plugin, ask your agent *"Set up LeanScope in this project."* The quickstart skill now runs the
+  setup for you instead of handing you a command.
+- **Claude Code in VS Code.** The README now says that a plugin installed for Copilot in VS Code
+  doesn't reach the Claude Code extension. `--clients claude-code` enables the kit's plugin in the
+  project's `.claude/settings.json`, so Claude Code offers to install it on the next start.
+- **Updating the VS Code plugin.** VS Code doesn't update installed plugins on its own; the README
+  says how. An old 0.1.x plugin brings its own servers, which show up twice or report "Unknown MCP
+  channel". The quickstart now recognises that error.
+  - **To do:** if you installed the plugin in VS Code before 0.2.0, update it as the README
+    describes.
+- `--clients vscode` now reminds you that *Copilot CLI* sessions need `--clients copilot-cli`.
+- The token is called "personal team repos access token" everywhere, as in LeanScope itself.
+  Claude Code shows the new name when it asks for it.
+
 ## 0.2.0 — 2026-10-23
 
 - **Claude Code asks for your token and keys.** The plugin now prompts for them when you install

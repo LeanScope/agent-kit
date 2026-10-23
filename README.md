@@ -7,8 +7,8 @@ Works with **Claude Code**, **GitHub Copilot** (VS Code *Agent* sessions and Cop
 Codex** and **Cursor**.
 
 Out of the box, batteries not included: everything runs in **your** LeanScope repository, with
-**your** personal team-repos access token and **your own LLM keys**. The hosted agent server holds your keys in memory
-for a session and never stores them.
+**your** personal team repos access token and **your own LLM keys**. The hosted agent server holds
+your keys in memory for a session and never stores them.
 
 ## What your agent can do with it
 
@@ -23,7 +23,7 @@ for a session and never stores them.
 
 | Secret | |
 | --- | --- |
-| LeanScope personal team-repos access token | required; it names the repository your choreos live in |
+| LeanScope personal team repos access token | required; it names the repository your choreos live in |
 | OpenAI key | for most choreos, and for live voice calls |
 | Anthropic, Mistral, ElevenLabs keys | optional, as your choreos need them |
 
@@ -44,9 +44,18 @@ export LEANSCOPE_OPENAI_API_KEY=…
 
 ## 2. Install
 
-The MCP servers live at `https://dev.mcp.leanscope.ai`. Except for Claude Code, you connect them
-with the setup script: `node <path-to-agent-kit>/scripts/setup-mcp.mjs --clients <client>`. It
-writes references only, never a secret, and keeps every other server in the file.
+**The short way:** install the plugin for your client (below), then ask your agent *"Set up
+LeanScope in this project."* It connects the MCP servers for you.
+
+To connect the MCP servers by hand, run the setup script in your project; it needs Node.js, no
+clone:
+
+```sh
+npx -y github:leanscope/agent-kit --clients <client>
+```
+
+It writes references only, never a secret, and keeps every other server in the file. From a clone,
+`node <path-to-agent-kit>/scripts/setup-mcp.mjs` takes the same options.
 
 ### Claude Code
 
@@ -59,6 +68,22 @@ The plugin brings the skills and all three MCP servers, and asks for the token a
 installs. To change them later: `/plugin configure agent-kit@leanscope`. (The shell command
 `claude plugin install` doesn't ask; run `/plugin configure` afterwards.)
 
+This also applies to the **Claude Code extension in VS Code**: a plugin installed for GitHub
+Copilot in VS Code does not reach Claude Code. Each needs its own install.
+
+Your agent can't run `/plugin`, but it can enable the plugin for the project:
+`npx -y github:leanscope/agent-kit --clients claude-code` adds this to `.claude/settings.json`, and
+Claude Code offers the install when the next session starts:
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "leanscope": { "source": { "source": "github", "repo": "leanscope/agent-kit" } }
+  },
+  "enabledPlugins": { "agent-kit@leanscope": true }
+}
+```
+
 ### GitHub Copilot in VS Code
 
 Copilot chat in VS Code has two session types, and each reads its own configuration:
@@ -67,6 +92,8 @@ Copilot chat in VS Code has two session types, and each reads its own configurat
 - **Copilot CLI**: reads `~/.copilot/mcp-config.json` and never `.vscode/mcp.json`. Set it up as
   in [Copilot CLI](#github-copilot-cli) below.
 
+New chats may open as either type, so set up both if you're unsure.
+
 For *Agent* sessions:
 
 1. Install the plugin (skills only): Command Palette → **Chat: Install Plugin From Source** →
@@ -74,15 +101,22 @@ For *Agent* sessions:
    to your settings). VS Code also discovers the skills when this repository is cloned into
    `.agents/skills`.
 2. Connect the MCP servers in your project:
-   `node <path-to-agent-kit>/scripts/setup-mcp.mjs --project . --clients vscode`
+   `npx -y github:leanscope/agent-kit --clients vscode`
    → writes `.vscode/mcp.json`. When a server first starts, VS Code asks for your token and OpenAI
    key and stores them encrypted. For other keys add `--keys openai,anthropic,mistral,elevenlabs`
    (each key is one dialog). To use environment variables instead, add `--secrets env`.
 
+**Updating the plugin.** VS Code keeps the version you installed and doesn't update it on its own.
+Pull the newest one with
+`git -C ~/.vscode/agent-plugins/github.com/LeanScope/agent-kit pull`, or uninstall the plugin and
+install it again, then reload the window. If the `leanscope-*` servers show up twice, or every one
+of them reports "Unknown MCP channel", you still have a 0.1.x plugin that brings its own servers:
+update it.
+
 ### GitHub Copilot CLI
 
 1. Optional, for the skills: `copilot plugin install leanscope/agent-kit`.
-2. `node <path-to-agent-kit>/scripts/setup-mcp.mjs --clients copilot-cli`
+2. `npx -y github:leanscope/agent-kit --clients copilot-cli`
    → adds the servers to `~/.copilot/mcp-config.json` (or `$COPILOT_HOME`), for every project.
    They reference your environment variables (`${LEANSCOPE_…}`), so set them first (see
    [the batteries](#1-the-batteries)).
@@ -92,7 +126,7 @@ For *Agent* sessions:
 1. `codex plugin marketplace add leanscope/agent-kit`, then install **agent-kit** from `/plugins`
    (CLI). In the IDE extension, plugins are not available yet: clone this repository and copy
    `skills/*` into your project's `.agents/skills/`.
-2. `node <path-to-agent-kit>/scripts/setup-mcp.mjs --project . --clients codex`
+2. `npx -y github:leanscope/agent-kit --clients codex`
    → writes the `[mcp_servers.leanscope-*]` block into `.codex/config.toml`, which Codex reads only
    in trusted projects. Token and keys come from your environment variables
    (`bearer_token_env_var`, `env_http_headers`).
@@ -101,13 +135,13 @@ For *Agent* sessions:
 
 1. Install the plugin from the marketplace, or copy this repository to
    `~/.cursor/plugins/local/agent-kit`.
-2. `node <path-to-agent-kit>/scripts/setup-mcp.mjs --project . --clients cursor`
+2. `npx -y github:leanscope/agent-kit --clients cursor`
    → writes `.cursor/mcp.json`, referencing your environment variables (`${env:…}`).
 
 ## 3. First steps
 
-Ask your agent: *"Set up LeanScope in this project."* — the quickstart skill checks the servers and
-tells you what is missing. Then, for example:
+Ask your agent: *"Set up LeanScope in this project."* — the quickstart skill checks each server,
+connects the missing ones and tells you what it changed. Then, for example:
 
 - *"Show me the choreos in my repository."*
 - *"Run the interview choreo and let me answer the questions."*
@@ -124,7 +158,7 @@ your coding agent ──MCP──▶ leanscope-admin    ──▶ which reposito
                                                         └──HTTP──▶ your worker  (optional)
 ```
 
-The agent server's REST API is documented at `https://api.agents.leanscope.ai/api/v1/docs`.
+The agent server's REST API is documented at `https://dev.api.agents.leanscope.ai/api/v1/docs`.
 
 ## Example
 
