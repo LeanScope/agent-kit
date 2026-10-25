@@ -1,6 +1,8 @@
-// VS Code, GitHub Copilot *Agent* sessions: `.vscode/mcp.json` in the project.
-// `--secrets prompt` (default): VS Code asks for each secret once, with a masked dialog, and keeps
-// it encrypted (`inputs` + `${input:…}`). `--secrets env`: `${env:…}` references.
+// VS Code, *Local* sessions (the Local harness, formerly "Agent"): `.vscode/mcp.json` in the
+// project. `--secrets prompt` (default): VS Code asks for each secret once, with a masked dialog,
+// and keeps it encrypted (`inputs` + `${input:…}`). `--secrets env`: `${env:…}` references.
+// VS Code doesn't forward servers that need an input to *Copilot* sessions (the Copilot harness),
+// which read the portable files instead: those need `copilot-cli`.
 
 import { join } from 'node:path';
 import { DEFAULT_PROMPTED_KEYS, renderServers, selectedSecrets } from '../catalog.mjs';
@@ -14,7 +16,7 @@ const keysFor = (options) =>
 
 export default {
   id: 'vscode',
-  name: 'VS Code (Copilot Agent)',
+  name: 'VS Code (Local sessions)',
   target: ({ project }) => join(project, '.vscode', 'mcp.json'),
 
   render(options) {
@@ -52,7 +54,7 @@ export default {
 
   after: (options) =>
     (options.secrets === 'env'
-      ? 'VS Code reads the variables from the environment it was started from: start it from a terminal (`code .`).'
-      : 'VS Code asks for the token (and each key) once, when a server first starts, and stores them encrypted.') +
-    ' This covers Copilot *Agent* sessions only; Copilot CLI sessions need --clients copilot-cli.',
+      ? 'VS Code reads the variables from the environment it was started from: quit it and start it from a terminal (`code .`).'
+      : 'In a Local session, MCP: List Servers → start each leanscope-* server: VS Code asks for the token (and each key) once, masked, and stores them encrypted.') +
+    ' This covers Local sessions only. Copilot sessions (Session Target "Copilot") and Copilot CLI never show this prompt and skip these servers: they need --clients copilot-cli.',
 };

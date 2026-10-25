@@ -6,13 +6,18 @@
 //                              [--keys openai,anthropic,mistral,elevenlabs] [--dry-run]
 //
 //   --project  the user's project. Default: the current directory.
-//   --clients  vscode (Copilot Agent sessions), copilot-cli (writes ~/.copilot/mcp-config.json),
-//              cursor, codex, claude-code (enables the kit's plugin in .claude/settings.json).
+//   --clients  vscode (VS Code *Local* sessions, .vscode/mcp.json), copilot-cli (Copilot CLI and
+//              VS Code *Copilot* sessions, ~/.copilot/mcp-config.json), cursor, codex,
+//              claude-code (enables the kit's plugin in .claude/settings.json).
 //              Default: vscode,cursor,codex.
 //              `--vendors` is the old name and still works for this release.
 //   --secrets  prompt (default): the client asks for the token and keys and stores them itself,
-//              where it can (VS Code). env: reference environment variables (see `.env.example`).
+//              where it can (VS Code Local sessions only: Copilot sessions skip servers that need
+//              an input). env: reference environment variables (see `.env.example`).
 //              Clients that can't prompt always use env.
+//
+// Afterwards it reads (never changes) the other files VS Code and Copilot CLI load, and warns about
+// `leanscope-*` servers that would show up twice or that name a secret this kit doesn't define.
 //   --keys     which optional LLM keys to wire up. Default: openai when prompting (every key is
 //              its own dialog), all of them for env.
 //
@@ -29,6 +34,7 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SECRETS } from './setup-mcp/catalog.mjs';
 import { CLIENTS } from './setup-mcp/clients/index.mjs';
+import { inspect } from './setup-mcp/inspect.mjs';
 
 const args = process.argv.slice(2);
 const option = (name, fallback) => {
@@ -88,6 +94,8 @@ for (const { client, file, secret } of missing) {
       'from a new terminal. Never paste the value into a chat.',
   );
 }
+// Read-only: report leanscope-* servers that would load twice or name a secret wrongly.
+for (const warning of inspect(context, clientIds)) console.warn(`\n! ${warning}`);
 if (notes.length > 0) console.log(`\n${notes.join('\n')}`);
 process.exit(failed ? 1 : 0);
 

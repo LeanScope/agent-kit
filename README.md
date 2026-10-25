@@ -29,10 +29,11 @@ your keys in memory for a session and never stores them.
 
 At least one completion-model key is needed to run a choreo. Never paste any of them into a chat.
 
-**Claude Code and VS Code ask for them** and store them themselves (OS credential store, or
-encrypted by VS Code). Nothing to set up beforehand.
+**Claude Code and VS Code *Local* sessions ask for them** and store them themselves (OS credential
+store, or encrypted by VS Code). Nothing to set up beforehand.
 
-**Copilot CLI, Codex and Cursor read them from environment variables.** Add them to your shell
+**Copilot CLI, VS Code *Copilot* sessions, Codex and Cursor read them from environment
+variables**, with exactly these names; they can't ask. Add them to your shell
 profile (`~/.zshrc` or `~/.bashrc`; `.env.example` lists the names), then restart the client from a
 new terminal. A project `.env` doesn't work: no MCP client reads it.
 
@@ -86,15 +87,21 @@ Claude Code offers the install when the next session starts:
 
 ### GitHub Copilot in VS Code
 
-Copilot chat in VS Code has two session types, and each reads its own configuration:
+The chat's **Session Target** control picks the harness, and each reads its own configuration:
 
-- **Agent** (local): reads the project's `.vscode/mcp.json`.
-- **Copilot CLI**: reads `~/.copilot/mcp-config.json` and never `.vscode/mcp.json`. Set it up as
-  in [Copilot CLI](#github-copilot-cli) below.
+- **Local** (once called *Agent*): reads the project's `.vscode/mcp.json`, and can ask for the
+  token in a masked dialog (`${input:…}`). Set it up as below.
+- **Copilot** (the Copilot harness, once called *Copilot CLI*): reads `~/.copilot/mcp-config.json`
+  and your environment variables. It can't ask for anything, and VS Code doesn't hand it servers
+  that need an input, so a prompting `.vscode/mcp.json` doesn't reach it. Set it up as in
+  [Copilot CLI](#github-copilot-cli) below, then quit VS Code, start it from a terminal
+  (`code .`) and open a new Copilot session.
 
-New chats may open as either type, so set up both if you're unsure.
+Set up the one you use. If you use both, VS Code Local sessions can list the servers twice; the
+setup script warns when that happens. Don't add a workspace-root `.mcp.json` for the kit: VS Code
+and Copilot CLI load it on top and the servers show up twice.
 
-For *Agent* sessions:
+For *Local* sessions:
 
 1. Install the plugin: Command Palette → **Chat: Install Plugin From Source** →
    `https://github.com/leanscope/agent-kit` (or add `"chat.plugins.marketplaces": ["leanscope/agent-kit"]`
@@ -112,14 +119,15 @@ For *Agent* sessions:
 Pull the newest one with
 `git -C ~/.vscode/agent-plugins/github.com/LeanScope/agent-kit pull`, or uninstall the plugin and
 install it again, then reload the window. If the `leanscope-*` servers show up twice, or every one
-of them reports "Unknown MCP channel", you still have a 0.1.x plugin that brings its own servers:
-update it.
+of them reports "Unknown MCP channel", you still have a plugin that brings its own servers (0.1.x,
+or 0.3.1 with its root `mcp.json`): update it.
 
 ### GitHub Copilot CLI
 
 1. Optional, for the skills: `copilot plugin install leanscope/agent-kit`.
 2. `npx -y github:leanscope/agent-kit --clients copilot-cli`
-   → adds the servers to `~/.copilot/mcp-config.json` (or `$COPILOT_HOME`), for every project.
+   → adds the servers to `~/.copilot/mcp-config.json` (or `$COPILOT_HOME`), for every project and
+   for VS Code *Copilot* sessions too.
    They reference your environment variables (`${LEANSCOPE_…}`), so set them first (see
    [the batteries](#1-the-batteries)).
 

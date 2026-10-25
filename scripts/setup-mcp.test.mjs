@@ -202,9 +202,149 @@ test('claude-code enables the kit plugin in .claude/settings.json and keeps othe
   assert.match(out, /\/plugin configure agent-kit@leanscope/);
 });
 
-test('vscode says that Copilot CLI sessions need their own setup', () => {
+test('vscode promises the masked prompt for Local sessions only, and sends Copilot sessions to copilot-cli', () => {
   const { out } = run(['--clients', 'vscode']);
-  assert.match(out, /Copilot CLI sessions need --clients copilot-cli/);
+  assert.match(out, /This covers Local sessions only/);
+  assert.match(out, /Copilot sessions \(Session Target "Copilot"\) and Copilot CLI never show this prompt/);
+  assert.match(out, /they need --clients copilot-cli/);
+});
+
+test('copilot-cli (Copilot CLI and VS Code Copilot sessions) promises no prompt and says how to reload', () => {
+  const home = mkdtempSync(join(tmpdir(), 'setup-mcp-home-'));
+  const { out } = runAll(['--clients', 'copilot-cli'], { COPILOT_HOME: home });
+  assert.doesNotMatch(out, /masked|asks for/i);
+  assert.match(out, /there is no input prompt/);
+  assert.match(out, /start it from a new terminal \(`code \.`\), then open a new Copilot session/);
+  const text = read(home, 'mcp-config.json');
+  assert.doesNotMatch(text, /\$\{input:|\$\{env:/); // the portable format resolves neither
+  assert.ok(JSON.parse(text).mcpServers, 'portable format uses mcpServers, not servers');
+});
+
+// --- variable names: exactly the ones in .env.example --------------------------------------------
+
+const kit = join(here, '..');
+const ENV_NAMES = [...read(kit, '.env.example').matchAll(/^([A-Z_]+)=/gm)].map((m) => m[1]);
+
+test('.env.example and the catalog name the same variables', async () => {
+  const { SECRETS } = await import('./setup-mcp/catalog.mjs');
+  assert.deepEqual(SECRETS.map((s) => s.env).sort(), [...ENV_NAMES].sort());
+});
+
+test('every env-reading config references only .env.example names', () => {
+  const home = mkdtempSync(join(tmpdir(), 'setup-mcp-home-'));
+  const { dir } = run(['--clients', 'vscode,cursor,codex,copilot-cli', '--secrets', 'env'], {
+    env: { COPILOT_HOME: home },
+  });
+  const texts = [
+    read(dir, '.vscode', 'mcp.json'),
+    read(dir, '.cursor', 'mcp.json'),
+    read(dir, '.codex', 'config.toml'),
+    read(home, 'mcp-config.json'),
+  ];
+  for (const text of texts) {
+    const names = [...text.matchAll(/\b(LEANSCOPE_[A-Z_]+|[A-Z]+_API_KEY|[A-Z]+_TOKEN)\b/g)].map((m) => m[1]);
+    assert.ok(names.length > 0);
+    for (const name of names) assert.ok(ENV_NAMES.includes(name), `${name} is not in .env.example`);
+  }
+});
+
+test('the docs and skills name no variable that .env.example lacks', () => {
+  const files = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard'], {
+    cwd: kit,
+    encoding: 'utf8',
+  })
+    .split('\n')
+    .filter((f) => /\.(md|mjs|json)$/.test(f))
+    .filter((f) => !f.endsWith('.test.mjs') && f !== 'RELEASES.md'); // history may name old variables
+  for (const file of files) {
+    let text;
+    try {
+      text = read(kit, file);
+    } catch {
+      continue;
+    }
+    // Secret names only (other LEANSCOPE_* variables, such as a worker's settings, are fine).
+    // `\b` doesn't match after `_`, so the second half finds bare `OPENAI_API_KEY` & co. only.
+    for (const [name] of text.matchAll(/\bLEANSCOPE_[A-Z_]*(?:TOKEN|API_KEY)\b|\b(?:OPENAI|ANTHROPIC|MISTRAL|ELEVENLABS)_API_KEY\b/g)) {
+      assert.ok(ENV_NAMES.includes(name), `${file}: ${name} — use the names in .env.example`);
+    }
+  }
+});
+
+// --- the other files VS Code and Copilot CLI load ------------------------------------------------
+
+test('a root .mcp.json with leanscope-* servers is reported, never changed, and no value is printed', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'setup-mcp-'));
+  const literal = 'not-a-real-token-0000';
+  const root = JSON.stringify({
+    mcpServers: {
+      'leanscope-agents': {
+        url: 'x',
+        headers: { Authorization: 'Bearer ${LEANSCOPE_TOKEN}', 'X-LeanScope-Key-OpenAI': '${OPENAI_API_KEY}' },
+      },
+      'leanscope-admin': { url: 'x', headers: { Authorization: `Bearer ${literal}` } },
+      mine: { url: 'y' },
+    },
+  });
+  writeFileSync(join(dir, '.mcp.json'), root);
+  const home = mkdtempSync(join(tmpdir(), 'setup-mcp-home-'));
+  const result = spawnSync(process.execPath, [script, '--project', dir, '--clients', 'vscode'], {
+    env: { PATH: process.env.PATH, HOME: home },
+    encoding: 'utf8',
+  });
+  assert.equal(result.status, 0);
+  assert.match(result.stderr, /Authorization references \$\{LEANSCOPE_TOKEN\}, which this kit doesn't define/);
+  assert.match(result.stderr, /X-LeanScope-Key-OpenAI references \$\{OPENAI_API_KEY\}/);
+  assert.match(result.stderr, /leanscope-admin: Authorization holds a literal value/);
+  assert.match(result.stderr, /\.mcp\.json also registers leanscope-agents, leanscope-admin/);
+  assert.ok(!`${result.stdout}${result.stderr}`.includes(literal), 'a header value was printed');
+  assert.equal(read(dir, '.mcp.json'), root); // read-only
+  assert.doesNotMatch(read(dir, '.vscode', 'mcp.json'), /LEANSCOPE_TOKEN|OPENAI_API_KEY"/); // nothing carried over
+});
+
+test('servers in both .vscode/mcp.json and the Copilot user config are reported as duplicates', () => {
+  const home = mkdtempSync(join(tmpdir(), 'setup-mcp-home-'));
+  const env = { COPILOT_HOME: home, LEANSCOPE_PERSONAL_TEAM_REPOS_ACCESS_TOKEN: 'set' };
+  const first = runAll(['--clients', 'vscode'], env);
+  assert.doesNotMatch(first.stderr, /twice/);
+  const second = spawnSync(process.execPath, [script, '--project', first.dir, '--clients', 'copilot-cli'], {
+    env: { PATH: process.env.PATH, HOME: first.home, ...env },
+    encoding: 'utf8',
+  });
+  assert.match(second.stderr, /now in .*\.vscode\/mcp\.json and in .*mcp-config\.json/s);
+  assert.match(second.stderr, /Keep one/);
+  // Both files keep working as they are: the script reports, it doesn't delete.
+  assert.ok(json(first.dir, '.vscode', 'mcp.json').servers['leanscope-admin']);
+});
+
+test('a clean setup of the kit’s own files warns about nothing', async () => {
+  const { inspect } = await import('./setup-mcp/inspect.mjs');
+  const dir = mkdtempSync(join(tmpdir(), 'setup-mcp-'));
+  const home = mkdtempSync(join(tmpdir(), 'setup-mcp-home-'));
+  run(['--clients', 'vscode'], { dir });
+  const saved = process.env.COPILOT_HOME;
+  process.env.COPILOT_HOME = join(home, '.copilot'); // never look at the developer's real config
+  try {
+    assert.deepEqual(inspect({ project: dir, home }, ['vscode']), []);
+  } finally {
+    if (saved === undefined) delete process.env.COPILOT_HOME;
+    else process.env.COPILOT_HOME = saved;
+  }
+});
+
+test('the quickstart decides the session type first and maps each to its setup', () => {
+  const skill = read(kit, 'skills', 'leanscope-quickstart', 'SKILL.md');
+  assert.ok(skill.indexOf('Which client and session are you in?') < skill.indexOf('### Run the setup'));
+  const row = (label) => skill.split('\n').find((l) => l.startsWith(`| ${label}`)) ?? '';
+  assert.match(row('VS Code, **Local** session'), /`vscode`.*yes/);
+  assert.match(row('VS Code, **Copilot** session'), /`copilot-cli`.*\*\*no\*\*/);
+  assert.match(row('Copilot CLI in a terminal'), /`copilot-cli`.*\*\*no\*\*/);
+  assert.match(skill, /Never create a workspace-root `\.mcp\.json`/);
+  assert.match(skill, /Never promise VS Code's masked dialog/);
+  // Troubleshooting tells missing configuration apart from authentication/startup, per client.
+  assert.match(skill, /not configured in this client/);
+  assert.match(skill, /That's authentication or startup, not missing configuration/);
+  assert.match(skill, /### Reload the servers/);
 });
 
 // --- the kit's own plugin manifests -------------------------------------------------------------
@@ -258,7 +398,8 @@ test('the token has one name everywhere: "personal team-repos access token"', ()
     'scripts/setup-mcp/catalog.mjs',
     'skills/leanscope-quickstart/SKILL.md',
   ]) {
-    assert.doesNotMatch(read(kit, file), /team-repos|repository access token/i, file);
+    // The old spellings: "team repos" without the hyphen, and "repository access token".
+    assert.doesNotMatch(read(kit, file), /team repos access token|repository access token/i, file);
   }
 });
 
@@ -310,7 +451,7 @@ test('a missing token is reported per env client, naming the variable and the fi
   const { out, stderr } = runAll(['--clients', 'vscode,cursor']);
   assert.match(stderr, /Cursor reads LEANSCOPE_PERSONAL_TEAM_REPOS_ACCESS_TOKEN .*\.cursor\/mcp\.json/s);
   assert.doesNotMatch(stderr, /VS Code/); // VS Code prompts
-  assert.match(out, /VS Code \(Copilot Agent\): VS Code asks/);
+  assert.match(out, /VS Code \(Local sessions\): In a Local session.*VS Code asks/);
 });
 
 test('no warning when the token is set', () => {

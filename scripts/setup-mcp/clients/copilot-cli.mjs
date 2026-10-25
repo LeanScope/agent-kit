@@ -1,7 +1,8 @@
-// GitHub Copilot CLI, including the "Copilot CLI" session type inside VS Code: the user-level
-// `~/.copilot/mcp-config.json` (or `$COPILOT_HOME/mcp-config.json`). It does NOT read
-// `.vscode/mcp.json`. Copilot CLI can't prompt; it expands `${VAR}` in headers from the
-// environment. Other servers in the file are kept.
+// GitHub Copilot CLI, and VS Code's *Copilot* sessions (the Copilot harness, Session Target
+// "Copilot", once called "Copilot CLI" sessions): the user-level `~/.copilot/mcp-config.json` (or
+// `$COPILOT_HOME/mcp-config.json`), the portable format. Neither reads `.vscode/mcp.json`, and
+// VS Code doesn't forward servers that need an input to Copilot sessions. Neither can prompt;
+// they expand `${VAR}` in headers from the environment. Other servers in the file are kept.
 
 import { join } from 'node:path';
 import { renderServers, selectedSecrets } from '../catalog.mjs';
@@ -12,7 +13,7 @@ const reference = (s) => (s.required ? `\${${s.env}}` : `\${${s.env}:-}`);
 
 export default {
   id: 'copilot-cli',
-  name: 'Copilot CLI',
+  name: 'Copilot (CLI and VS Code Copilot sessions)',
   target: ({ home }) => join(process.env.COPILOT_HOME || join(home, '.copilot'), 'mcp-config.json'),
 
   render: (options) =>
@@ -27,5 +28,5 @@ export default {
 
   envSecrets: (options) => selectedSecrets(options.keys),
   after: () =>
-    'Copilot CLI reads the variables from the shell it starts in; in VS Code, restart VS Code from a new terminal.',
+    'Both read the variables from the environment they start in, and there is no input prompt. Copilot CLI: start it from a new terminal. VS Code: quit it, start it from a new terminal (`code .`), then open a new Copilot session.',
 };

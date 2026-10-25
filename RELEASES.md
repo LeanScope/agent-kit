@@ -1,5 +1,30 @@
 # Release notes
 
+## 0.3.2 — 2026-10-25
+
+- **VS Code: the setup matches your session type.** VS Code's *Local* sessions read
+  `.vscode/mcp.json` and ask for the token in a masked dialog. *Copilot* sessions (Session Target
+  "Copilot") can't ask: VS Code doesn't hand them servers that need an input, so they read
+  `~/.copilot/mcp-config.json` and your environment variables, like Copilot CLI. The quickstart now
+  finds out which session you're in before it changes anything, sets up only that one
+  (`--clients vscode` or `--clients copilot-cli`), and no longer promises the dialog in a Copilot
+  session.
+  - **To do:** if you use Copilot sessions in VS Code, ask your agent *"Set up LeanScope in this
+    project."* again, set `LEANSCOPE_PERSONAL_TEAM_REPOS_ACCESS_TOKEN` (and
+    `LEANSCOPE_OPENAI_API_KEY`) in your shell profile, quit VS Code, start it from a terminal
+    (`code .`) and open a new Copilot session.
+- **The setup warns about duplicate or misnamed servers.** After writing, it reads (never changes)
+  the workspace-root `.mcp.json`, `.vscode/mcp.json` and the Copilot user config, and warns when
+  `leanscope-*` servers would load twice, when one references a variable that isn't in
+  `.env.example` (such as a shortened alias), or when a header holds a literal value. It never
+  prints a value.
+  - **To do:** if you added a root `.mcp.json` with `leanscope-*` servers yourself, remove those
+    entries (keep the others).
+- **No more root `mcp.json` in the plugin.** 0.3.1 shipped one by mistake, so VS Code could list
+  the `leanscope-*` servers twice. Update the plugin as the README describes.
+- The quickstart's troubleshooting separates *not configured for this session* from
+  *authentication or startup errors*, and says how to reload the servers in each client.
+
 ## 0.3.1 — 2026-10-25
 
 - **VS Code: the agent runs the setup again.** 0.3.0 assumed the plugin's own `mcp.json` would

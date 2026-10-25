@@ -1,7 +1,7 @@
 {
   "name": "agent-kit",
   "description": "Model, run and extend LeanScope choreos from your coding agent, on your own repository and LLM keys.",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "author": { "name": "LeanScope" },
   "homepage": "https://github.com/leanscope/agent-kit",
   "repository": "https://github.com/leanscope/agent-kit",
