@@ -7,7 +7,7 @@ Works with **Claude Code**, **GitHub Copilot** (VS Code *Agent* sessions and Cop
 Codex** and **Cursor**.
 
 Out of the box, batteries not included: everything runs in **your** LeanScope repository, with
-**your** personal team repos access token and **your own LLM keys**. The hosted agent server holds
+**your** personal team-repos access token and **your own LLM keys**. The hosted agent server holds
 your keys in memory for a session and never stores them.
 
 ## What your agent can do with it
@@ -23,7 +23,7 @@ your keys in memory for a session and never stores them.
 
 | Secret | |
 | --- | --- |
-| LeanScope personal team repos access token | required; it names the repository your choreos live in |
+| LeanScope personal team-repos access token | required; it names the repository your choreos live in |
 | OpenAI key | for most choreos, and for live voice calls |
 | Anthropic, Mistral, ElevenLabs keys | optional, as your choreos need them |
 

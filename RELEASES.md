@@ -11,7 +11,7 @@
   - **To do:** update the plugin (VS Code doesn't do it on its own): run
     `git -C ~/.vscode/agent-plugins/github.com/LeanScope/agent-kit pull`, or uninstall and
     reinstall it, then reload the window. An old copy (0.1.x) still talks about
-    `LEANSCOPE_ACCESS_TOKEN` and writes `${env:…}` servers.
+    `LEANSCOPE_PERSONAL_TEAM_REPOS_ACCESS_TOKEN` and writes `${env:…}` servers.
 - **Prompts say where to get your token** (app.leanscope.ai, avatar top-right), and which keys are
   optional.
 - **The plugin is called "leanscope-agent-kit"** in VS Code's plugin list, with a description that
@@ -34,7 +34,7 @@
   - **To do:** if you installed the plugin in VS Code before 0.2.0, update it as the README
     describes.
 - `--clients vscode` now reminds you that *Copilot CLI* sessions need `--clients copilot-cli`.
-- The token is called "personal team repos access token" everywhere, as in LeanScope itself.
+- The token is called "personal team-repos access token" everywhere, as in LeanScope itself.
   Claude Code shows the new name when it asks for it.
 
 ## 0.2.0 — 2026-10-23

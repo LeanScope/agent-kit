@@ -249,7 +249,7 @@ test('package.json runs the setup script, so `npx github:leanscope/agent-kit` ne
   assert.match(read(kit, 'scripts', 'setup-mcp.mjs'), /^#!\/usr\/bin\/env node\n/);
 });
 
-test('the token has one name everywhere: "personal team repos access token"', () => {
+test('the token has one name everywhere: "personal team-repos access token"', () => {
   const kit = join(here, '..');
   for (const file of [
     'README.md',

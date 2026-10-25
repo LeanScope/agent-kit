@@ -15,7 +15,7 @@ hosted agent server. This kit lets you, a coding agent, do three things for the 
 | try it out, answer it turn by turn, debug it         | `run-a-choreo`   | `leanscope-agents`  |
 | let a step call their own code                       | `write-a-worker` | both                |
 
-Everything runs **as the user**: their LeanScope repository, their personal team repos access
+Everything runs **as the user**: their LeanScope repository, their personal team-repos access
 token, their own LLM keys.
 Nothing is billed to anyone else, and the engine never stores their keys.
 
@@ -96,7 +96,7 @@ terminal. A project `.env` is not read by any MCP client.
 
 | Variable                                                                                                               | What                                                              |
 | ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| `LEANSCOPE_PERSONAL_TEAM_REPOS_ACCESS_TOKEN`                                                                           | their LeanScope personal team repos access token                  |
+| `LEANSCOPE_PERSONAL_TEAM_REPOS_ACCESS_TOKEN`                                                                           | their LeanScope personal team-repos access token                  |
 | `LEANSCOPE_OPENAI_API_KEY`, `LEANSCOPE_ANTHROPIC_API_KEY`, `LEANSCOPE_MISTRAL_API_KEY`, `LEANSCOPE_ELEVENLABS_API_KEY` | their own LLM keys; at least one completion model to run a choreo |
 
 After a change to the MCP configuration, the client has to reload its servers (a new session, or a
@@ -108,7 +108,7 @@ start the `leanscope-*` servers and enter the token in VS Code's masked dialog.
 Pass the id as `repositoryId` to every `leanscope-graphql` tool. In this order:
 
 1. **The user named one** ("repository 2067"): use it. Don't call `leanscope-admin` for it.
-2. Otherwise call `get_credential_permissions` on `leanscope-admin` once. A personal team repos
+2. Otherwise call `get_credential_permissions` on `leanscope-admin` once. A personal team-repos
    access token returns one repository id.
 3. If `leanscope-admin` isn't reachable, ask the user for the id **once**, and say why ("I can't
    reach leanscope-admin: <cause>, so I can't look it up"). Then carry on.

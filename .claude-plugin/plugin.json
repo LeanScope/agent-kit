@@ -20,7 +20,7 @@
   "userConfig": {
     "token": {
       "type": "string",
-      "title": "LeanScope personal team repos access token",
+      "title": "LeanScope personal team-repos access token",
       "description": "Names the LeanScope repository your choreos live in. Stored in your OS credential store.",
       "sensitive": true,
       "required": true

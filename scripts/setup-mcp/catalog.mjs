@@ -29,7 +29,7 @@ export const SECRETS = [
   {
     id: 'token',
     env: 'LEANSCOPE_PERSONAL_TEAM_REPOS_ACCESS_TOKEN',
-    label: 'LeanScope personal team repos access token',
+    label: 'LeanScope personal team-repos access token',
     help: 'Get it at https://app.leanscope.ai/ via your avatar (top-right). It names the repository your choreos live in.',
     required: true,
   },
