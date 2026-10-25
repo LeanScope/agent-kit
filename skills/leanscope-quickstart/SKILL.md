@@ -50,6 +50,10 @@ a choreo once you have the repository id (step 3). `leanscope-agents` is needed 
 
 If all three are connected, go to step 3.
 
+**Until `leanscope-graphql` is connected, don't start the user's actual task.** Don't ask what the
+choreo should do, who it is for, or anything else about it: that is wasted effort while nothing can
+be written. Fix the connection first (step 2), then ask.
+
 ## 2. Fix what is missing
 
 **Never ask the user to paste a token or key into the chat**, and never write one into a file. Tell
@@ -60,6 +64,13 @@ Copilot in VS Code has two session types with separate setups: *Agent* (local, r
 `.vscode/mcp.json`) and *Copilot CLI* (reads `~/.copilot/mcp-config.json`, never
 `.vscode/mcp.json`). If you are a Copilot CLI session and have no `leanscope-*` tools, say so: "this
 is a Copilot CLI session, which doesn't read `.vscode/mcp.json`", then fix it with `copilot-cli`.
+
+**VS Code with the kit's plugin installed: don't run the setup.** The plugin brings the three servers
+itself and VS Code asks for the token in a masked dialog when a server starts. If the tools are
+missing, the servers just haven't started or the user hasn't answered the dialog: tell them to open
+the Command Palette → **MCP: List Servers**, start the `leanscope-*` servers and enter the token.
+If that doesn't help, the installed plugin is outdated (see below). Never write `.vscode/mcp.json`
+for them, and never ask for secrets to be put in the environment for VS Code.
 
 **Run the setup yourself; don't hand the user a command.** It writes references to the secrets,
 never a secret, and keeps every other server in the file. Tell the user which file it wrote. Run it
@@ -73,7 +84,7 @@ from the user's project folder (it is the default `--project`):
 | Client                        | `--clients`   | What it writes, and what happens next                                                                                                                                               | Secrets                                                                                                       |
 | ----------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
 | Claude Code (CLI or VS Code extension) | `claude-code` | `.claude/settings.json`: enables the kit's plugin, which brings the servers. Claude Code offers the install on the next session start (you can't run `/plugin` yourself). | asked at install, kept in the OS credential store; changed with `/plugin configure agent-kit@leanscope` |
-| VS Code, *Agent* sessions     | `vscode`      | `.vscode/mcp.json`                                                                                                                                                                    | VS Code asks once when a server starts and stores them encrypted                                              |
+| VS Code, *Agent* sessions, plugin not installed | `vscode`      | `.vscode/mcp.json` (with the plugin installed, it writes nothing and removes its own old entries)                                                                                                                                                                    | VS Code asks once when a server starts and stores them encrypted                                              |
 | Copilot CLI (also in VS Code) | `copilot-cli` | `~/.copilot/mcp-config.json`, for every project                                                                                                                                       | environment variables                                                                                         |
 | Codex                         | `codex`       | `.codex/config.toml` (read in trusted projects only)                                                                                                                                  | environment variables                                                                                         |
 | Cursor                        | `cursor`      | `.cursor/mcp.json`                                                                                                                                                                    | environment variables                                                                                         |

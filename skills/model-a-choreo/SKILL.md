@@ -21,6 +21,8 @@ Read these before writing anything — they are short and they are the contract:
 
 ## Process
 
+0. **Connected first.** If you can't call `search_schema` (`leanscope-graphql`), stop: don't ask
+   about the goal yet. Follow `leanscope-quickstart` to get connected, then come back.
 1. **Understand the goal.** What should the conversation achieve, with whom, which persona leads,
    what must the human answer, what happens at the end. Sketch the steps as a short list and confirm
    it with the user before writing.

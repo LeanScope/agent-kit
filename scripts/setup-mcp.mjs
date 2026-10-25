@@ -23,7 +23,7 @@
 // only enables that plugin for the project. For kit maintainers, `--clients claude-plugin`
 // regenerates the plugin's manifest from the catalog, and `--clients vscode-plugin` the root mcp.json.
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -70,6 +70,11 @@ for (const id of clientIds) {
   try {
     const file = client.target(context);
     const current = existsSync(file) ? readFileSync(file, 'utf8') : undefined;
+    if (client.superseded?.(options, context)) {
+      if (current !== undefined) retire(client, file, current);
+      notes.push(`${client.name}: the installed kit plugin already brings the servers, so nothing is written.`);
+      continue;
+    }
     write(file, client.merge(current, client.render(options), file));
     notes.push(`${client.name}: ${client.after(options)}`);
     for (const s of client.envSecrets(options)) {
@@ -90,6 +95,20 @@ for (const { client, file, secret } of missing) {
 }
 if (notes.length > 0) console.log(`\n${notes.join('\n')}`);
 process.exit(failed ? 1 : 0);
+
+function retire(client, file, current) {
+  const next = client.retire(current, file);
+  if (next === current) return;
+  if (dryRun) {
+    console.log(`--- would remove the leanscope-* entries from ${file}`);
+  } else if (next === undefined) {
+    rmSync(file);
+    console.log(`✓ removed ${file} (only held the kit's servers)`);
+  } else {
+    writeFileSync(file, next);
+    console.log(`✓ removed the leanscope-* entries from ${file}`);
+  }
+}
 
 function write(file, content) {
   if (dryRun) {

@@ -96,15 +96,18 @@ New chats may open as either type, so set up both if you're unsure.
 
 For *Agent* sessions:
 
-1. Install the plugin (skills only): Command Palette → **Chat: Install Plugin From Source** →
+1. Install the plugin: Command Palette → **Chat: Install Plugin From Source** →
    `https://github.com/leanscope/agent-kit` (or add `"chat.plugins.marketplaces": ["leanscope/agent-kit"]`
    to your settings). VS Code also discovers the skills when this repository is cloned into
    `.agents/skills`.
-2. Connect the MCP servers in your project:
-   `npx -y github:leanscope/agent-kit --clients vscode`
-   → writes `.vscode/mcp.json`. When a server first starts, VS Code asks for your token and OpenAI
-   key and stores them encrypted. For other keys add `--keys openai,anthropic,mistral,elevenlabs`
-   (each key is one dialog). To use environment variables instead, add `--secrets env`.
+2. The plugin connects the MCP servers itself: when a server first starts, VS Code asks for your
+   token and OpenAI key and stores them encrypted. Nothing else to run.
+
+   Without the plugin (skills cloned into `.agents/skills`), connect them in your project:
+   `npx -y github:leanscope/agent-kit --clients vscode` → writes `.vscode/mcp.json`. For other keys
+   add `--keys openai,anthropic,mistral,elevenlabs` (each key is one dialog); to use environment
+   variables instead, add `--secrets env`. With the plugin installed this command writes nothing and
+   removes the kit's entries from an existing `.vscode/mcp.json`, so no server shows up twice.
 
 **Updating the plugin.** VS Code keeps the version you installed and doesn't update it on its own.
 Pull the newest one with

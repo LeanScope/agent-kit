@@ -136,6 +136,42 @@ test('vscode by default prompts for the token and the OpenAI key only', () => {
   assert.doesNotMatch(read(dir, '.vscode', 'mcp.json'), /\$\{env:/);
 });
 
+test('vscode writes nothing when the plugin is installed, and removes our old entries', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'setup-mcp-'));
+  const home = mkdtempSync(join(tmpdir(), 'setup-mcp-home-'));
+  mkdirSync(join(home, '.vscode', 'agent-plugins'), { recursive: true });
+  writeFileSync(
+    join(home, '.vscode', 'agent-plugins', 'installed.json'),
+    JSON.stringify({ installed: [{ marketplace: 'https://github.com/LeanScope/agent-kit.git' }] }),
+  );
+  const setup = () =>
+    execFileSync(process.execPath, [script, '--project', dir, '--clients', 'vscode'], {
+      env: { PATH: process.env.PATH, HOME: home },
+      encoding: 'utf8',
+    });
+
+  assert.match(setup(), /plugin already brings the servers/);
+  assert.throws(() => read(dir, '.vscode', 'mcp.json')); // nothing was written
+
+  mkdirSync(join(dir, '.vscode'));
+  writeFileSync(
+    join(dir, '.vscode', 'mcp.json'),
+    JSON.stringify({
+      inputs: [{ id: 'leanscope-token' }, { id: 'other' }],
+      servers: { 'leanscope-admin': {}, mine: { url: 'x' } },
+    }),
+  );
+  setup();
+  assert.deepEqual(json(dir, '.vscode', 'mcp.json'), {
+    inputs: [{ id: 'other' }],
+    servers: { mine: { url: 'x' } },
+  });
+
+  writeFileSync(join(dir, '.vscode', 'mcp.json'), JSON.stringify({ servers: { 'leanscope-admin': {} } }));
+  setup();
+  assert.throws(() => read(dir, '.vscode', 'mcp.json')); // it only held our servers
+});
+
 test('vscode --keys picks the prompted LLM keys', () => {
   const { dir } = run(['--clients', 'vscode', '--keys', 'anthropic,mistral']);
   const config = json(dir, '.vscode', 'mcp.json');

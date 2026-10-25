@@ -13,6 +13,13 @@
     about `LEANSCOPE_ACCESS_TOKEN` and writes `${env:…}` servers.
   - **To do:** delete a `.vscode/mcp.json` that an earlier setup wrote, or the servers show up
     twice.
+- **The plugin is called "leanscope-agent-kit"** in VS Code's plugin list, with a description that
+  starts "LeanScope Agent Kit" (VS Code shows the plugin's name, and the format has no title field).
+- **No double servers.** With the plugin installed, `setup-mcp.mjs --clients vscode` writes nothing
+  and removes the kit's entries from an existing `.vscode/mcp.json`.
+- **The agent no longer interviews you before it's connected.** The quickstart and `model-a-choreo`
+  skills now get the servers connected first, and in VS Code send you to **MCP: List Servers**
+  instead of writing a config.
 - The kit's root `mcp.json` is generated from the server catalog
   (`node scripts/setup-mcp.mjs --clients vscode-plugin`), and a test fails when it drifts.
 
