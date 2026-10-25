@@ -2,7 +2,6 @@
 // `--secrets prompt` (default): VS Code asks for each secret once, with a masked dialog, and keeps
 // it encrypted (`inputs` + `${input:…}`). `--secrets env`: `${env:…}` references.
 
-import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { DEFAULT_PROMPTED_KEYS, renderServers, selectedSecrets } from '../catalog.mjs';
 import { mergeServers, parse, stringify } from '../json.mjs';
@@ -12,20 +11,6 @@ const inputId = (secret) => `${INPUT_PREFIX}${secret.id}`;
 
 const keysFor = (options) =>
   options.keys ?? (options.secrets === 'env' ? undefined : DEFAULT_PROMPTED_KEYS);
-
-// The kit's VS Code plugin brings the servers itself (its `mcp.json`); a second copy in the project
-// would list every server twice.
-const pluginInstalled = (home) => {
-  try {
-    const file = join(home, '.vscode', 'agent-plugins', 'installed.json');
-    if (!existsSync(file)) return false;
-    return (JSON.parse(readFileSync(file, 'utf8')).installed ?? []).some((p) =>
-      /leanscope\/agent-kit/i.test(`${p.marketplace} ${p.pluginUri}`),
-    );
-  } catch {
-    return false;
-  }
-};
 
 export default {
   id: 'vscode',
@@ -46,7 +31,7 @@ export default {
       ? selectedSecrets(keys).map((s) => ({
           type: 'promptString',
           id: inputId(s),
-          description: s.label,
+          description: `${s.label}. ${s.help}`,
           password: true,
         }))
       : [];
@@ -61,21 +46,6 @@ export default {
     if (nextInputs.length > 0) config.inputs = nextInputs;
     else delete config.inputs;
     return stringify(config);
-  },
-
-  // Skipped, and our entries removed from an existing file, when the plugin brings the servers.
-  superseded: (options, { home }) => options.secrets !== 'env' && pluginInstalled(home),
-
-  retire(text, file) {
-    const config = parse(text, file);
-    for (const name of Object.keys(config.servers ?? {})) {
-      if (name.startsWith('leanscope-')) delete config.servers[name];
-    }
-    if (config.servers && Object.keys(config.servers).length === 0) delete config.servers;
-    const inputs = (config.inputs ?? []).filter((i) => !i.id?.startsWith(INPUT_PREFIX));
-    if (inputs.length > 0) config.inputs = inputs;
-    else delete config.inputs;
-    return Object.keys(config).length === 0 ? undefined : stringify(config);
   },
 
   envSecrets: (options) => (options.secrets === 'env' ? selectedSecrets(keysFor(options)) : []),

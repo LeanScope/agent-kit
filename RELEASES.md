@@ -1,27 +1,23 @@
 # Release notes
 
-## 0.3.0 — 2026-10-25
+## 0.3.1 — 2026-10-25
 
-- **VS Code connects the servers when you install the plugin.** The plugin's `mcp.json` brings the
-  three `leanscope-*` servers, and VS Code asks for your personal team repos access token (and
-  your OpenAI key) in a masked dialog when a server first starts. No setup script, no environment
-  variables. The prompts now say where to get the token: https://app.leanscope.ai/, via your
-  avatar (top-right).
-  - **To do:** if you installed the plugin in VS Code before, update it. VS Code doesn't do that
-    on its own: run `git -C ~/.vscode/agent-plugins/github.com/LeanScope/agent-kit pull` (or
-    uninstall and reinstall the plugin), then reload the window. An old copy (0.1.x) still talks
-    about `LEANSCOPE_ACCESS_TOKEN` and writes `${env:…}` servers.
-  - **To do:** delete a `.vscode/mcp.json` that an earlier setup wrote, or the servers show up
-    twice.
+- **VS Code: the agent runs the setup again.** 0.3.0 assumed the plugin's own `mcp.json` would
+  connect the servers, but a plugin can't ask for a token (the Agent Plugins format has no
+  `inputs`), so nothing was connected and the agent told you to start servers that didn't exist.
+  The plugin is skills-only again; ask your agent *"Set up LeanScope in this project."* and it
+  writes `.vscode/mcp.json`. Then **MCP: List Servers** → start the `leanscope-*` servers → enter
+  your token in VS Code's masked dialog.
+  - **To do:** update the plugin (VS Code doesn't do it on its own): run
+    `git -C ~/.vscode/agent-plugins/github.com/LeanScope/agent-kit pull`, or uninstall and
+    reinstall it, then reload the window. An old copy (0.1.x) still talks about
+    `LEANSCOPE_ACCESS_TOKEN` and writes `${env:…}` servers.
+- **Prompts say where to get your token** (app.leanscope.ai, avatar top-right), and which keys are
+  optional.
 - **The plugin is called "leanscope-agent-kit"** in VS Code's plugin list, with a description that
   starts "LeanScope Agent Kit" (VS Code shows the plugin's name, and the format has no title field).
-- **No double servers.** With the plugin installed, `setup-mcp.mjs --clients vscode` writes nothing
-  and removes the kit's entries from an existing `.vscode/mcp.json`.
 - **The agent no longer interviews you before it's connected.** The quickstart and `model-a-choreo`
-  skills now get the servers connected first, and in VS Code send you to **MCP: List Servers**
-  instead of writing a config.
-- The kit's root `mcp.json` is generated from the server catalog
-  (`node scripts/setup-mcp.mjs --clients vscode-plugin`), and a test fails when it drifts.
+  skills now get the servers connected first.
 
 ## 0.2.1 — 2026-10-23
 

@@ -34,9 +34,9 @@ export const SECRETS = [
     required: true,
   },
   { id: 'openai', env: 'LEANSCOPE_OPENAI_API_KEY', label: 'OpenAI API key', help: 'Needed by most choreos and for voice calls. Leave empty if you have none yet.', required: false },
-  { id: 'anthropic', env: 'LEANSCOPE_ANTHROPIC_API_KEY', label: 'Anthropic API key', required: false },
-  { id: 'mistral', env: 'LEANSCOPE_MISTRAL_API_KEY', label: 'Mistral API key', required: false },
-  { id: 'elevenlabs', env: 'LEANSCOPE_ELEVENLABS_API_KEY', label: 'ElevenLabs API key', required: false },
+  { id: 'anthropic', env: 'LEANSCOPE_ANTHROPIC_API_KEY', label: 'Anthropic API key', help: 'Optional: leave empty if your choreos don\'t use it.', required: false },
+  { id: 'mistral', env: 'LEANSCOPE_MISTRAL_API_KEY', label: 'Mistral API key', help: 'Optional: leave empty if your choreos don\'t use it.', required: false },
+  { id: 'elevenlabs', env: 'LEANSCOPE_ELEVENLABS_API_KEY', label: 'ElevenLabs API key', help: 'Optional: leave empty if your choreos don\'t use it.', required: false },
 ];
 
 /** The optional keys a prompting client asks for unless told otherwise (each one is a dialog). */

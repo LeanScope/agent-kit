@@ -14,8 +14,7 @@ import codex from './codex.mjs';
 import copilotCli from './copilot-cli.mjs';
 import cursor from './cursor.mjs';
 import vscode from './vscode.mjs';
-import vscodePlugin from './vscode-plugin.mjs';
 
 export const CLIENTS = Object.fromEntries(
-  [vscode, copilotCli, cursor, codex, claudeCode, claudePlugin, vscodePlugin].map((c) => [c.id, c]),
+  [vscode, copilotCli, cursor, codex, claudeCode, claudePlugin].map((c) => [c.id, c]),
 );

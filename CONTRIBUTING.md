@@ -12,7 +12,7 @@ kit, start with the [README](README.md).
   it):
   - `package.json` (only for `npx github:leanscope/agent-kit`, which runs the setup script; no
     dependencies, not published to npm)
-  - `plugin.json` (Agent Plugins 1.0, read by VS Code and Copilot CLI; its servers come from the root `mcp.json`, generated with `node scripts/setup-mcp.mjs --clients vscode-plugin`)
+  - `plugin.json` (Agent Plugins 1.0, read by VS Code and Copilot CLI: skills only. No root `mcp.json`: the Agent Plugins format has no `inputs`, so it can't ask for a token, and a test enforces this)
   - `.claude-plugin/plugin.json`
   - `.claude-plugin/marketplace.json`
   - `.codex-plugin/plugin.json`
