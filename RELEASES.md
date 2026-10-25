@@ -1,5 +1,21 @@
 # Release notes
 
+## 0.3.0 — 2026-10-25
+
+- **VS Code connects the servers when you install the plugin.** The plugin's `mcp.json` brings the
+  three `leanscope-*` servers, and VS Code asks for your personal team repos access token (and
+  your OpenAI key) in a masked dialog when a server first starts. No setup script, no environment
+  variables. The prompts now say where to get the token: https://app.leanscope.ai/, via your
+  avatar (top-right).
+  - **To do:** if you installed the plugin in VS Code before, update it. VS Code doesn't do that
+    on its own: run `git -C ~/.vscode/agent-plugins/github.com/LeanScope/agent-kit pull` (or
+    uninstall and reinstall the plugin), then reload the window. An old copy (0.1.x) still talks
+    about `LEANSCOPE_ACCESS_TOKEN` and writes `${env:…}` servers.
+  - **To do:** delete a `.vscode/mcp.json` that an earlier setup wrote, or the servers show up
+    twice.
+- The kit's root `mcp.json` is generated from the server catalog
+  (`node scripts/setup-mcp.mjs --clients vscode-plugin`), and a test fails when it drifts.
+
 ## 0.2.1 — 2026-10-23
 
 - **No clone needed for the setup.** `npx -y github:leanscope/agent-kit --clients <client>` runs
