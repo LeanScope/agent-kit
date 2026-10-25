@@ -290,12 +290,23 @@ test('the README links the agent API docs of the catalog stage', () => {
   assert.ok(read(here, '..', 'README.md').includes(AGENT_API_DOCS), AGENT_API_DOCS);
 });
 
-test('the root plugin.json is Agent Plugins 1.0 and declares no servers', () => {
+test('the committed root mcp.json is what the catalog generates', async () => {
+  const { default: plugin } = await import('./setup-mcp/clients/vscode-plugin.mjs');
+  const file = plugin.target({ kit: join(here, '..') });
+  const committed = readFileSync(file, 'utf8');
+  assert.equal(
+    plugin.merge(committed, plugin.render({}), file),
+    committed,
+    'run `node scripts/setup-mcp.mjs --clients vscode-plugin` and commit the result',
+  );
+  assert.equal(JSON.parse(committed).mcpServers['leanscope-admin'].url, `${HOST}/mcp/admin`);
+});
+
+test('the root plugin.json is Agent Plugins 1.0 and declares no servers itself', () => {
   const kit = join(here, '..');
   const manifest = json(kit, 'plugin.json');
   assert.equal(manifest.$schema, 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json');
   assert.equal(manifest.mcpServers, undefined);
-  assert.throws(() => read(kit, 'mcp.json'));
 });
 
 // --- CLI ---------------------------------------------------------------------------------------

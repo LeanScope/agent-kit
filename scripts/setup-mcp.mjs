@@ -21,7 +21,7 @@
 //
 // Claude Code's plugin brings its own servers and asks for the secrets; `--clients claude-code`
 // only enables that plugin for the project. For kit maintainers, `--clients claude-plugin`
-// regenerates the plugin's manifest from the catalog.
+// regenerates the plugin's manifest from the catalog, and `--clients vscode-plugin` the root mcp.json.
 
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';

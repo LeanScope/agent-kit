@@ -4,13 +4,13 @@
     {
       "type": "promptString",
       "id": "leanscope-token",
-      "description": "LeanScope personal team-repos access token",
+      "description": "LeanScope personal team repos access token. Get it at https://app.leanscope.ai/ via your avatar (top-right). It names the repository your choreos live in.",
       "password": true
     },
     {
       "type": "promptString",
       "id": "leanscope-openai",
-      "description": "OpenAI API key",
+      "description": "OpenAI API key. Needed by most choreos and for voice calls. Leave empty if you have none yet.",
       "password": true
     }
   ],

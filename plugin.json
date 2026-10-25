@@ -2,7 +2,7 @@
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "agent-kit",
   "version": "0.2.1",
-  "description": "Model, run and extend LeanScope choreos from your coding agent, on your own repository and LLM keys. Skills only: connect the MCP servers with scripts/setup-mcp.mjs.",
+  "description": "Model, run and extend LeanScope choreos from your coding agent, on your own repository and LLM keys. In VS Code the plugin also connects the MCP servers and asks for your token.",
   "author": { "name": "LeanScope", "url": "https://github.com/leanscope" },
   "homepage": "https://github.com/leanscope/agent-kit",
   "repository": "https://github.com/leanscope/agent-kit",
