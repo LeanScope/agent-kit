@@ -4,8 +4,9 @@
 // (characterization). It may change only where a change is intended.
 
 import assert from 'node:assert/strict';
-import { execFileSync, spawnSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { execFileSync, spawn, spawnSync } from 'node:child_process';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { test } from 'node:test';
@@ -317,6 +318,176 @@ test('servers in both .vscode/mcp.json and the Copilot user config are reported 
   assert.ok(json(first.dir, '.vscode', 'mcp.json').servers['leanscope-admin']);
 });
 
+test('an empty root .mcp.json is reported as a leftover', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'setup-mcp-'));
+  writeFileSync(join(dir, '.mcp.json'), '{\n  "mcpServers": {\n  }\n}\n');
+  const home = mkdtempSync(join(tmpdir(), 'setup-mcp-home-'));
+  const result = spawnSync(process.execPath, [script, '--project', dir, '--clients', 'vscode'], {
+    env: { PATH: process.env.PATH, HOME: home },
+    encoding: 'utf8',
+  });
+  assert.match(result.stderr, /\.mcp\.json registers no MCP server at all/);
+  assert.match(result.stderr, /--clean-root/);
+  assert.ok(existsSync(join(dir, '.mcp.json'))); // reported, not deleted
+});
+
+// --- --clean-root ---------------------------------------------------------------------------------
+
+const ROOT_MIXED = {
+  mcpServers: { 'leanscope-admin': { url: 'x' }, 'leanscope-agents': { url: 'x' }, mine: { url: 'y' } },
+  inputs: [{ id: 'leanscope-token' }, { id: 'other' }],
+};
+
+test('--clean-root removes only the leanscope-* servers and inputs, and keeps the rest', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'setup-mcp-'));
+  writeFileSync(join(dir, '.mcp.json'), JSON.stringify(ROOT_MIXED));
+  run(['--clean-root'], { dir });
+  assert.deepEqual(json(dir, '.mcp.json'), { mcpServers: { mine: { url: 'y' } }, inputs: [{ id: 'other' }] });
+});
+
+test('--clean-root deletes the file when nothing else is left, and an already empty one', () => {
+  for (const content of [
+    JSON.stringify({ mcpServers: { 'leanscope-graphql': { url: 'x' } }, inputs: [{ id: 'leanscope-token' }] }),
+    '{\n  "mcpServers": {\n  }\n}\n',
+    '',
+  ]) {
+    const dir = mkdtempSync(join(tmpdir(), 'setup-mcp-'));
+    writeFileSync(join(dir, '.mcp.json'), content);
+    const { out } = run(['--clean-root'], { dir });
+    assert.match(out, /deleted/);
+    assert.ok(!existsSync(join(dir, '.mcp.json')), `still there: ${JSON.stringify(content)}`);
+  }
+});
+
+test('--clean-root --dry-run changes nothing', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'setup-mcp-'));
+  writeFileSync(join(dir, '.mcp.json'), '{"mcpServers":{}}');
+  const { out } = run(['--clean-root', '--dry-run'], { dir });
+  assert.match(out, /would delete/);
+  assert.equal(read(dir, '.mcp.json'), '{"mcpServers":{}}');
+});
+
+test('--clean-root leaves a file without leanscope-* servers alone, and copes with no file', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'setup-mcp-'));
+  assert.match(run(['--clean-root'], { dir }).out, /nothing to clean/);
+  const mine = '{"mcpServers":{"mine":{"url":"y"}}}';
+  writeFileSync(join(dir, '.mcp.json'), mine);
+  run(['--clean-root'], { dir });
+  assert.equal(read(dir, '.mcp.json'), mine);
+});
+
+// --- --check ------------------------------------------------------------------------------------
+
+const FAKE_TOKEN = 'fake-token-not-real-4711';
+
+/** Run `--check` without blocking this process, so an in-process stub server can answer. */
+function runCheck(args, { dir = mkdtempSync(join(tmpdir(), 'setup-mcp-')), home, env = {} } = {}) {
+  home ??= mkdtempSync(join(tmpdir(), 'setup-mcp-home-'));
+  return new Promise((done) => {
+    const child = spawn(process.execPath, [script, '--project', dir, '--check', ...args], {
+      env: { PATH: process.env.PATH, HOME: home, COPILOT_HOME: join(home, '.copilot'), SHELL: '/bin/zsh', ...env },
+    });
+    let out = '';
+    child.stdout.on('data', (d) => (out += d));
+    child.stderr.on('data', (d) => (out += d));
+    child.on('close', (status) => done({ out, status, dir, home }));
+  });
+}
+
+/** A stand-in for leanscope-admin: answers like the hosted channel for `respond(token)`. */
+async function adminStub(respond) {
+  const server = createServer((req, res) => {
+    let body = '';
+    req.on('data', (d) => (body += d));
+    req.on('end', () => {
+      const token = (req.headers.authorization ?? '').replace(/^Bearer /, '');
+      const { id, method } = JSON.parse(body);
+      const answer = respond(token, method);
+      if (answer.status) {
+        res.writeHead(answer.status).end();
+        return;
+      }
+      res.writeHead(200, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ jsonrpc: '2.0', id, result: answer.result }));
+    });
+  });
+  await new Promise((ok) => server.listen(0, '127.0.0.1', ok));
+  return { url: `http://127.0.0.1:${server.address().port}/mcp/admin`, close: () => server.close() };
+}
+
+const permissions = (repositoryIds) => (token, method) =>
+  method === 'initialize'
+    ? { result: { protocolVersion: '2025-03-26', capabilities: {}, serverInfo: { name: 'stub', version: '1' } } }
+    : { result: { content: [{ type: 'text', text: '{}' }], structuredContent: { kind: 'access-token', repositoryIds } } };
+
+test('--check: no token anywhere → exit 1, names the variable and one command to open the profile', async () => {
+  const { out, status } = await runCheck(['--clients', 'copilot-cli']);
+  assert.equal(status, 1);
+  assert.match(out, /LEANSCOPE_PERSONAL_TEAM_REPOS_ACCESS_TOKEN: not set in this shell, not exported/);
+  assert.match(out, /Next:/);
+  assert.match(out, /`code .*\.zshrc`/);
+  assert.match(out, /doesn't exist yet/); // no config written yet
+});
+
+test('--check: finds the export line in a shell profile by name, and never prints its value', async () => {
+  const home = mkdtempSync(join(tmpdir(), 'setup-mcp-home-'));
+  writeFileSync(join(home, '.zshrc'), `export LEANSCOPE_PERSONAL_TEAM_REPOS_ACCESS_TOKEN=${FAKE_TOKEN}\n`);
+  const { out } = await runCheck(['--clients', 'copilot-cli'], { home });
+  assert.match(out, /not set in this shell, exported in .*\.zshrc/);
+  assert.ok(!out.includes(FAKE_TOKEN), 'the value was printed');
+});
+
+test('--check probes leanscope-admin: a rejected token is named, a good one shows its repository', async () => {
+  const rejecting = await adminStub(() => ({ status: 401 }));
+  const accepting = await adminStub(permissions([2067]));
+  try {
+    const env = { LEANSCOPE_PERSONAL_TEAM_REPOS_ACCESS_TOKEN: FAKE_TOKEN };
+    const dir = mkdtempSync(join(tmpdir(), 'setup-mcp-'));
+    const home = mkdtempSync(join(tmpdir(), 'setup-mcp-home-'));
+    execFileSync(process.execPath, [script, '--project', dir, '--clients', 'copilot-cli'], {
+      env: { PATH: process.env.PATH, HOME: home, COPILOT_HOME: join(home, '.copilot'), ...env },
+      stdio: 'ignore',
+    });
+
+    const bad = await runCheck(['--clients', 'copilot-cli', '--probe-url', rejecting.url], { dir, home, env });
+    assert.equal(bad.status, 1);
+    assert.match(bad.out, /rejected \(HTTP 401\)/);
+    assert.match(bad.out, /app\.leanscope\.ai/);
+    assert.ok(!bad.out.includes(FAKE_TOKEN), 'the token was printed');
+
+    const good = await runCheck(['--clients', 'copilot-cli', '--probe-url', accepting.url], { dir, home, env });
+    assert.match(good.out, /registers leanscope-admin, leanscope-graphql, leanscope-agents/);
+    assert.match(good.out, /ok, the token reaches repository 2067/);
+    assert.ok(!good.out.includes(FAKE_TOKEN), 'the token was printed');
+  } finally {
+    rejecting.close();
+    accepting.close();
+  }
+});
+
+test('--check: a tool error "did not accept" counts as rejected; no connection is named as such', async () => {
+  const refusing = await adminStub((token, method) =>
+    method === 'initialize'
+      ? permissions([])(token, method)
+      : { result: { isError: true, content: [{ type: 'text', text: 'LeanScope did not accept the token.' }] } },
+  );
+  try {
+    const env = { LEANSCOPE_PERSONAL_TEAM_REPOS_ACCESS_TOKEN: FAKE_TOKEN };
+    const refused = await runCheck(['--clients', 'copilot-cli', '--probe-url', refusing.url], { env });
+    assert.match(refused.out, /rejected: LeanScope did not accept the token/);
+    const offline = await runCheck(['--clients', 'copilot-cli', '--probe-url', 'http://127.0.0.1:9/mcp/admin'], { env });
+    assert.match(offline.out, /no connection to/);
+  } finally {
+    refusing.close();
+  }
+});
+
+test('--check needs exactly one client', () => {
+  const result = runAll(['--check', '--clients', 'vscode,cursor']);
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /exactly one --clients/);
+});
+
 test('a clean setup of the kit’s own files warns about nothing', async () => {
   const { inspect } = await import('./setup-mcp/inspect.mjs');
   const dir = mkdtempSync(join(tmpdir(), 'setup-mcp-'));
@@ -345,6 +516,24 @@ test('the quickstart decides the session type first and maps each to its setup',
   assert.match(skill, /not configured in this client/);
   assert.match(skill, /That's authentication or startup, not missing configuration/);
   assert.match(skill, /### Reload the servers/);
+});
+
+test('the quickstart asks for the client first, never for the repository id, and diagnoses with --check', () => {
+  const skill = read(kit, 'skills', 'leanscope-quickstart', 'SKILL.md');
+  const agents = read(kit, 'AGENTS.md');
+  // The client question comes before the connection check.
+  assert.ok(skill.indexOf('## 0. Which client and session are you in?') < skill.indexOf('## 1. Check the connection'));
+  assert.match(skill, /Ask this first, every time/);
+  // No fallback that asks the user for the id.
+  assert.match(skill, /\*\*Never ask the user for it\.\*\*/);
+  assert.doesNotMatch(skill, /ask the user for the id/i);
+  assert.doesNotMatch(agents, /ask the user for the id/i);
+  // The token check is admin's, for all three servers.
+  assert.match(skill, /`get_credential_permissions` is the token check for all three servers/);
+  // Diagnose, then one command; tidy a root .mcp.json with the script, never by hand.
+  assert.match(skill, /--check --clients <id>/);
+  assert.match(skill, /--clean-root/);
+  assert.match(skill, /never leave an empty config file behind/);
 });
 
 // --- the kit's own plugin manifests -------------------------------------------------------------

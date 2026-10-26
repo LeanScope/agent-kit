@@ -1,5 +1,27 @@
 # Release notes
 
+## 0.4.0 — 2026-10-26
+
+- **The quickstart asks which client first.** Before it checks or changes anything, your agent
+  asks which client the kit should work with (VS Code Local or Copilot session, Claude Code,
+  Copilot CLI, Codex, Cursor) as one choice, with the one it detected suggested. It then sets up
+  only that one.
+- **No more question about the repository id.** The id comes from your token through
+  `leanscope-admin`. If LeanScope rejects the token, the agent now says so for all three servers
+  and helps you fix the token, instead of asking for an id that wouldn't work with that token
+  anyway. It also no longer starts on your choreo while the token is rejected.
+- **New: `--check` diagnoses the connection** without changing anything or printing a secret:
+  `npx -y github:leanscope/agent-kit --check --clients <client>`. It shows whether the client's
+  file registers the servers, whether the token is set and exported in your shell profile, and
+  what LeanScope says to it (accepted with your repository, rejected, unreachable). It ends with
+  the next steps as commands, such as `code ~/.zshrc`. The agent runs it for you and hands you one
+  command or link instead of a path to go and look at.
+- **New: `--clean-root` tidies a workspace-root `.mcp.json`.** It removes only the `leanscope-*`
+  servers and inputs and deletes the file once nothing else is in it. The setup now also warns
+  about an empty root `.mcp.json`, which an earlier cleanup could leave behind.
+  - **To do:** if your project has an empty `.mcp.json` (`{"mcpServers": {}}`), delete it or run
+    `npx -y github:leanscope/agent-kit --clean-root`.
+
 ## 0.3.2 — 2026-10-25
 
 - **VS Code: the setup matches your session type.** VS Code's *Local* sessions read

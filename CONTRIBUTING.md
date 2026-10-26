@@ -5,6 +5,10 @@ kit, start with the [README](README.md).
 
 ## Every change
 
+- **Plans.** Before implementing a planned change (for example one approved in an agent's plan
+  mode), save the plan as `tasks/todo-<short-name>.md`: a short header (origin, version bump), a
+  checkbox progress list, then the plan itself. Tick items off as you go. `tasks/` is gitignored,
+  so these files stay local.
 - **Release notes.** Every change a kit user can notice gets an entry at the top of
   [RELEASES.md](RELEASES.md), written for kit users: what changed and what they have to do, if
   anything. Write the entry as part of the change, once it has been tested, not before.

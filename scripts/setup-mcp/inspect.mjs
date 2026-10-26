@@ -63,7 +63,7 @@ function problems(server) {
 export function inspect(context, written, read = readIfThere) {
   const configs = sharedConfigs(context).map((c) => {
     const text = read(c.file);
-    return { ...c, entries: text ? leanscopeEntries(text) : [] };
+    return { ...c, text, entries: text ? leanscopeEntries(text) : [] };
   });
   const warnings = [];
 
@@ -78,7 +78,13 @@ export function inspect(context, written, read = readIfThere) {
     warnings.push(
       `${root.file} also registers ${root.entries.map((e) => e.name).join(', ')}. The kit never writes ` +
         'this file, and VS Code and Copilot CLI load it next to their own config, so the servers ' +
-        'show up twice. Remove those entries from it (keep the others).',
+        'show up twice. Run the setup with --clean-root: it removes only those entries, keeps ' +
+        'the others, and deletes the file if nothing is left.',
+    );
+  } else if (root.text !== undefined && isEmptyConfig(root.text)) {
+    warnings.push(
+      `${root.file} registers no MCP server at all. It is probably left over from an earlier ` +
+        'cleanup and only confuses: delete it (the setup does this with --clean-root).',
     );
   }
 
@@ -94,6 +100,21 @@ export function inspect(context, written, read = readIfThere) {
     );
   }
   return warnings;
+}
+
+/** True when a config's text parses and holds no server and no other setting. */
+export function isEmptyConfig(text) {
+  if (!text.trim()) return true;
+  let config;
+  try {
+    config = JSON.parse(text);
+  } catch {
+    return false;
+  }
+  if (!config || typeof config !== 'object') return false;
+  const { servers, mcpServers, inputs, ...rest } = config;
+  const none = (v) => v === undefined || (typeof v === 'object' && v !== null && Object.keys(v).length === 0);
+  return none(servers) && none(mcpServers) && none(inputs) && Object.keys(rest).length === 0;
 }
 
 function readIfThere(file) {

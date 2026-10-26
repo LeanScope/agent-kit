@@ -1,6 +1,6 @@
 {
   "name": "leanscope-agent-kit",
-  "version": "0.3.2",
+  "version": "0.4.0",
   "private": true,
   "description": "Connect your coding agent to LeanScope: `npx -y github:leanscope/agent-kit --clients <client>` writes the MCP configuration. No dependencies.",
   "homepage": "https://github.com/leanscope/agent-kit",

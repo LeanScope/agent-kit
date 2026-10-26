@@ -99,7 +99,9 @@ The chat's **Session Target** control picks the harness, and each reads its own 
 
 Set up the one you use. If you use both, VS Code Local sessions can list the servers twice; the
 setup script warns when that happens. Don't add a workspace-root `.mcp.json` for the kit: VS Code
-and Copilot CLI load it on top and the servers show up twice.
+and Copilot CLI load it on top and the servers show up twice. If one is already there (or an empty
+one is left over), `npx -y github:leanscope/agent-kit --clean-root` removes the `leanscope-*`
+entries and deletes the file once nothing else is in it.
 
 For *Local* sessions:
 
@@ -150,8 +152,20 @@ or 0.3.1 with its root `mcp.json`): update it.
 
 ## 3. First steps
 
-Ask your agent: *"Set up LeanScope in this project."* — the quickstart skill checks each server,
-connects the missing ones and tells you what it changed. Then, for example:
+Ask your agent: *"Set up LeanScope in this project."* — the quickstart skill first asks which
+client you use (VS Code Local or Copilot session, Claude Code, Copilot CLI, Codex, Cursor), checks
+each server, connects the missing ones and tells you what it changed. It finds your repository from
+the token; it never asks for its id.
+
+Something not working? This diagnoses it without changing anything and without printing a secret.
+It shows whether the token is set and exported in your shell profile, what LeanScope says to it, and
+what to do next:
+
+```sh
+npx -y github:leanscope/agent-kit --check --clients <client>
+```
+
+Then, for example:
 
 - *"Show me the choreos in my repository."*
 - *"Run the interview choreo and let me answer the questions."*

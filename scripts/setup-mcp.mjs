@@ -4,6 +4,8 @@
 //   npx -y github:leanscope/agent-kit --clients <ids> [options]     (no clone needed)
 //   node scripts/setup-mcp.mjs --clients <ids> [--project <dir>] [--secrets prompt|env]
 //                              [--keys openai,anthropic,mistral,elevenlabs] [--dry-run]
+//   node scripts/setup-mcp.mjs --check --clients <id>       (diagnose, writes nothing)
+//   node scripts/setup-mcp.mjs --clean-root [--dry-run]     (tidy a workspace-root .mcp.json)
 //
 //   --project  the user's project. Default: the current directory.
 //   --clients  vscode (VS Code *Local* sessions, .vscode/mcp.json), copilot-cli (Copilot CLI and
@@ -18,6 +20,12 @@
 //
 // Afterwards it reads (never changes) the other files VS Code and Copilot CLI load, and warns about
 // `leanscope-*` servers that would show up twice or that name a secret this kit doesn't define.
+//   --check    read-only diagnosis for ONE client (writes nothing): its config file, whether each
+//              secret is set in this shell and exported in a shell profile (names only), and a
+//              live call of leanscope-admin with the token, then the next step. Exit 1 on a problem.
+//   --clean-root  removes only the leanscope-* servers and inputs from the workspace-root
+//              `.mcp.json` (which the kit never writes) and deletes the file if nothing is left.
+//              Honors --dry-run.
 //   --keys     which optional LLM keys to wire up. Default: openai when prompting (every key is
 //              its own dialog), all of them for env.
 //
@@ -28,13 +36,15 @@
 // only enables that plugin for the project. For kit maintainers, `--clients claude-plugin`
 // regenerates the plugin's manifest from the catalog.
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
-import { dirname, resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { SECRETS } from './setup-mcp/catalog.mjs';
+import { SECRETS, SERVERS } from './setup-mcp/catalog.mjs';
+import { check } from './setup-mcp/check.mjs';
 import { CLIENTS } from './setup-mcp/clients/index.mjs';
-import { inspect } from './setup-mcp/inspect.mjs';
+import { inspect, isEmptyConfig } from './setup-mcp/inspect.mjs';
+import { parse, removeServers, stringify } from './setup-mcp/json.mjs';
 
 const args = process.argv.slice(2);
 const option = (name, fallback) => {
@@ -64,6 +74,21 @@ if (unknownKeys.length > 0) {
   fail(`unknown --keys ${unknownKeys.join(', ')} — use openai, anthropic, mistral, elevenlabs`);
 }
 if (failed) process.exit(1);
+
+if (args.includes('--clean-root')) process.exit(cleanRoot());
+
+if (args.includes('--check')) {
+  const id = option('clients', option('vendors'));
+  if (!id || id.includes(',') || !CLIENTS[id]) {
+    console.error(`✗ --check needs exactly one --clients <id>: ${Object.keys(CLIENTS).join(', ')}`);
+    process.exit(1);
+  }
+  // A test-only override, so the probe can hit a local stub instead of the hosted admin channel.
+  const probeUrl = option('probe-url');
+  const result = await check(context, CLIENTS[id], options, { probeUrl });
+  console.log(result.lines.join('\n'));
+  process.exit(result.ok ? 0 : 1);
+}
 
 const notes = [];
 const missing = [];
@@ -98,6 +123,40 @@ for (const { client, file, secret } of missing) {
 for (const warning of inspect(context, clientIds)) console.warn(`\n! ${warning}`);
 if (notes.length > 0) console.log(`\n${notes.join('\n')}`);
 process.exit(failed ? 1 : 0);
+
+/** `--clean-root`: drop our servers from the workspace-root .mcp.json; delete it if empty. */
+function cleanRoot() {
+  const file = join(context.project, '.mcp.json');
+  if (!existsSync(file)) {
+    console.log(`✓ no ${file}, nothing to clean`);
+    return 0;
+  }
+  const text = readFileSync(file, 'utf8');
+  let config;
+  try {
+    config = parse(text, file);
+  } catch (error) {
+    console.error(`✗ ${error.message}`);
+    return 1;
+  }
+  const ours = new Set(SERVERS.map((s) => s.name));
+  const next = isEmptyConfig(text) ? undefined : removeServers(config, (n) => ours.has(n), 'leanscope-');
+  if (next === undefined) {
+    if (dryRun) console.log(`--- would delete ${file} (nothing else is left in it)`);
+    else {
+      rmSync(file);
+      console.log(`✓ deleted ${file} (nothing else was left in it)`);
+    }
+    return 0;
+  }
+  const content = stringify(next);
+  if (content === stringify(config)) {
+    console.log(`✓ ${file} holds no leanscope-* servers, left as it is`);
+    return 0;
+  }
+  write(file, content);
+  return 0;
+}
 
 function write(file, content) {
   if (dryRun) {

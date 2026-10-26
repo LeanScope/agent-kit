@@ -20,11 +20,14 @@ Rules that always apply:
 
 - Never ask for, accept, print or write a token or API key. They come from the user's environment
   (`.env.example` lists the exact names; never invent others) through the MCP configuration.
-- Before changing MCP configuration, find out which client and session type you run in (VS Code
+- First ask which client and session the kit is for (quickstart step 0, a single choice; VS Code
   *Local* and *Copilot* sessions read different files) and set up only that one, with the setup
-  script. Never add a workspace-root `.mcp.json` for the `leanscope-*` servers.
-- The repository id: the one the user names wins; otherwise ask `get_credential_permissions`; if
-  `leanscope-admin` is unreachable, ask the user for the id once and say why.
+  script. Never add a workspace-root `.mcp.json` for the `leanscope-*` servers, and never leave an
+  empty one behind (`--clean-root` tidies it).
+- The repository id: the one the user names wins; otherwise ask `get_credential_permissions`.
+  Never ask the user for it: if `leanscope-admin` rejects the token, fix the token.
+- Diagnose with `scripts/setup-mcp.mjs --check` yourself; hand the user one command or link, not
+  a path to go and look at.
 - Never send `action: "UPDATE"` to the LeanScope API; omit `action` (see
   `skills/model-a-choreo/reference/write-rules.md`).
 - Preview every repository write before applying it, and read it back afterwards.
