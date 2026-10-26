@@ -20,6 +20,8 @@ Rules that always apply:
 
 - Never ask for, accept, print or write a token or API key. They come from the user's environment
   (`.env.example` lists the exact names; never invent others) through the MCP configuration.
+- Never read a file that may hold one (`~/.zshrc`, `~/.bashrc`, `.env`, …), and never tell the user
+  to open such a file in VS Code: an open file goes to the chat as context. `--check` looks for you.
 - First ask which client and session the kit is for (quickstart step 0, a single choice; VS Code
   *Local* and *Copilot* sessions read different files) and set up only that one, with the setup
   script. Never add a workspace-root `.mcp.json` for the `leanscope-*` servers, and never leave an

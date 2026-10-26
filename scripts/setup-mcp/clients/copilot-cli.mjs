@@ -28,5 +28,5 @@ export default {
 
   envSecrets: (options) => selectedSecrets(options.keys),
   after: () =>
-    'Both read the variables from the environment they start in, and there is no input prompt. Copilot CLI: start it from a new terminal. VS Code: quit it, start it from a new terminal (`code .`), then open a new Copilot session.',
+    'Both read the variables from the environment they start in, and there is no input prompt. Copilot CLI: start it from a new terminal. VS Code: quit it completely (⌘Q; reopening it from the Dock is not enough), start it from a new terminal (`code .`), then open a new Copilot session.',
 };

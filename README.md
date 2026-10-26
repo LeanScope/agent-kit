@@ -35,7 +35,8 @@ store, or encrypted by VS Code). Nothing to set up beforehand.
 **Copilot CLI, VS Code *Copilot* sessions, Codex and Cursor read them from environment
 variables**, with exactly these names; they can't ask. Add them to your shell
 profile (`~/.zshrc` or `~/.bashrc`; `.env.example` lists the names), then restart the client from a
-new terminal. A project `.env` doesn't work: no MCP client reads it.
+new terminal. Edit the profile outside VS Code (for example `open -e ~/.zshrc` on macOS): a file
+open in VS Code is attached to the chat, token included. A project `.env` doesn't work: no MCP client reads it.
 
 ```sh
 export LEANSCOPE_PERSONAL_TEAM_REPOS_ACCESS_TOKEN=…
@@ -94,8 +95,9 @@ The chat's **Session Target** control picks the harness, and each reads its own 
 - **Copilot** (the Copilot harness, once called *Copilot CLI*): reads `~/.copilot/mcp-config.json`
   and your environment variables. It can't ask for anything, and VS Code doesn't hand it servers
   that need an input, so a prompting `.vscode/mcp.json` doesn't reach it. Set it up as in
-  [Copilot CLI](#github-copilot-cli) below, then quit VS Code, start it from a terminal
-  (`code .`) and open a new Copilot session.
+  [Copilot CLI](#github-copilot-cli) below, then quit VS Code (⌘Q), start it from a new terminal
+  (`code .`) and open a new Copilot session. Reload Window or reopening VS Code from the Dock is
+  not enough: then Copilot sessions don't get the variables from your shell profile.
 
 Set up the one you use. If you use both, VS Code Local sessions can list the servers twice; the
 setup script warns when that happens. Don't add a workspace-root `.mcp.json` for the kit: VS Code

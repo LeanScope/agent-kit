@@ -3,9 +3,11 @@
 //   1. the client's config file, and which leanscope-* servers it registers;
 //   2. per secret: set in this shell's environment? exported in a shell profile? (names only);
 //   3. a live probe: `get_credential_permissions` on leanscope-admin with the token from this
-//      environment: ok (repository …), rejected (401/403), channel missing (404), or no network;
+//      environment, or else from the shell profile (read by an interactive shell, held in memory,
+//      never printed): ok (repository …), rejected (401/403), channel missing (404), no network;
 //   4. one next step, as a command or a file to open.
 
+import { spawnSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { MARKETPLACE, PLUGIN, SERVERS, secret, url } from './catalog.mjs';
@@ -18,8 +20,8 @@ const PROFILES = ['.zshenv', '.zshrc', '.zprofile', '.bashrc', '.bash_profile', 
 /** Which clients read the secrets from the environment, and how each reloads after a change. */
 const RELOAD = {
   'copilot-cli':
-    'quit VS Code completely, then start it from a new terminal with `code <project>` and open a new Copilot session (Copilot CLI: open a new terminal and start `copilot`)',
-  vscode: 'quit VS Code completely, then start it from a new terminal with `code <project>`',
+    'quit VS Code completely (⌘Q; Reload Window or reopening it from the Dock is not enough), open a NEW Terminal window, run `code <project>` there, and open a new Copilot session (Copilot CLI: open a new terminal and start `copilot`)',
+  vscode: 'quit VS Code completely (⌘Q), open a NEW Terminal window and run `code <project>` there',
   codex: 'quit Codex, then start it from a new terminal',
   cursor: 'quit Cursor, then start it from a new terminal with `cursor <project>`',
 };
@@ -72,6 +74,8 @@ export async function check(context, client, options, deps = {}) {
   const tokenSet = Boolean(env[TOKEN.env]?.trim());
   const tokenExported = exportedIn(TOKEN.env);
 
+  const edit = (file) => editCommand(file, env);
+
   if (!readsEnv) {
     say(
       '–',
@@ -89,9 +93,17 @@ export async function check(context, client, options, deps = {}) {
     if (s.required && !set) {
       ok = false;
       if (where.length === 0) {
-        next.push(`open your shell profile with \`code ${profile}\`, add the line \`export ${s.env}=…\` (your token from https://app.leanscope.ai/, avatar top-right), save`);
+        next.push(
+          `in Terminal, run \`${edit(profile)}\` (outside VS Code: a file open in VS Code is sent to the chat), ` +
+            `add these lines at the very end, with your values between the quotes, and save:\n` +
+            `       export ${s.env}="…"   (from https://app.leanscope.ai/, avatar top-right)\n` +
+            `       export LEANSCOPE_OPENAI_API_KEY="…"   (optional, needed to run choreos)`,
+        );
       } else {
-        next.push(`the line in ${where[0]} is there but this shell doesn't see it: check it with \`code ${where[0]}\` (spelling, no spaces around =)`);
+        next.push(
+          `${where[0]} has the variable, but ${client.name} was started without it. ` +
+            'Started from the Dock or Spotlight, VS Code does not hand your shell profile to Copilot sessions. Nothing in the file needs to change',
+        );
       }
     }
   }
@@ -99,16 +111,21 @@ export async function check(context, client, options, deps = {}) {
     say('–', 'No LLM key is set: you can model choreos, but running one needs at least one.');
   }
 
-  // 3. The live probe, with the token this shell sees.
-  if (!tokenSet) {
-    say('–', `Probe skipped: ${TOKEN.env} isn't set in this shell.`);
+  // 3. The live probe, with the token this shell sees, or else the one in the shell profile.
+  const fromProfile = !tokenSet && tokenExported.length > 0;
+  const token = tokenSet ? env[TOKEN.env].trim() : fromProfile ? (deps.profileValue ?? profileValue)(TOKEN.env, env) : '';
+  if (!token) {
+    say('–', `Probe skipped: ${TOKEN.env} isn't set in this shell${fromProfile ? ', and an interactive shell could not read it from your profile' : ''}.`);
   } else {
-    const result = await probe(deps.probeUrl ?? url(ADMIN), env[TOKEN.env].trim(), doFetch);
-    say(result.ok ? '✓' : '✗', `leanscope-admin with that token: ${result.text}`);
+    const result = await probe(deps.probeUrl ?? url(ADMIN), token, doFetch);
+    const which = fromProfile ? `the token in ${tokenExported[0]}` : 'that token';
+    say(result.ok ? '✓' : '✗', `leanscope-admin with ${which}: ${result.text}`);
     if (!result.ok) ok = false;
     if (result.rejected) {
       const at = tokenExported[0] ?? profile;
-      next.push(`get a fresh personal team-repos access token at https://app.leanscope.ai/ (avatar, top-right), replace the value with \`code ${at}\`, save`);
+      next.push(
+        `get a fresh personal team-repos access token at https://app.leanscope.ai/ (avatar, top-right); in Terminal, run \`${edit(at)}\` and replace the old value between the quotes, save`,
+      );
     }
     if (!readsEnv && result.ok) {
       say('–', client.id === 'claude-code'
@@ -143,6 +160,36 @@ function registeredServers(clientId, text) {
     return SERVERS.map((s) => s.name).filter((n) => text.includes(`[mcp_servers.${n}]`));
   }
   return leanscopeEntries(text).map((e) => e.name);
+}
+
+/**
+ * A command that opens `file` OUTSIDE VS Code: a file open in VS Code's editor is attached to the
+ * chat as context, and with it every secret in it.
+ */
+function editCommand(file, env) {
+  return process.platform === 'darwin' ? `open -e ${file}` : `${env.EDITOR || 'nano'} ${file}`;
+}
+
+/**
+ * The value an interactive shell gets for `name` from the user's profile, or '' when it can't.
+ * Held in memory for the probe only; never printed or returned to the caller's output.
+ */
+function profileValue(name, env) {
+  const shell = env.SHELL || '/bin/zsh';
+  const marker = '__LEANSCOPE_CHECK__';
+  try {
+    const result = spawnSync(shell, ['-i', '-c', `printf '\\n${marker}%s' "$${name}"`], {
+      env: { ...env, [name]: '' },
+      encoding: 'utf8',
+      timeout: 15000,
+      stdio: ['ignore', 'pipe', 'ignore'],
+    });
+    const out = result.stdout ?? '';
+    const at = out.lastIndexOf(marker);
+    return at >= 0 ? out.slice(at + marker.length).trim() : '';
+  } catch {
+    return '';
+  }
 }
 
 /** The profile a new terminal reads, by login shell. */

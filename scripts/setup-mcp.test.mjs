@@ -425,16 +425,41 @@ test('--check: no token anywhere → exit 1, names the variable and one command 
   assert.equal(status, 1);
   assert.match(out, /LEANSCOPE_PERSONAL_TEAM_REPOS_ACCESS_TOKEN: not set in this shell, not exported/);
   assert.match(out, /Next:/);
-  assert.match(out, /`code .*\.zshrc`/);
+  // Opens the profile outside VS Code (an open editor tab is sent to the chat) and shows the lines.
+  assert.match(out, /`(open -e|nano|vi) .*\.zshrc`/);
+  assert.doesNotMatch(out, /`code [^`]*\.zshrc`/);
+  assert.match(out, /export LEANSCOPE_PERSONAL_TEAM_REPOS_ACCESS_TOKEN="…"/);
   assert.match(out, /doesn't exist yet/); // no config written yet
 });
 
 test('--check: finds the export line in a shell profile by name, and never prints its value', async () => {
   const home = mkdtempSync(join(tmpdir(), 'setup-mcp-home-'));
   writeFileSync(join(home, '.zshrc'), `export LEANSCOPE_PERSONAL_TEAM_REPOS_ACCESS_TOKEN=${FAKE_TOKEN}\n`);
-  const { out } = await runCheck(['--clients', 'copilot-cli'], { home });
+  const { out } = await runCheck(['--clients', 'copilot-cli', '--probe-url', 'http://127.0.0.1:9/x'], { home });
   assert.match(out, /not set in this shell, exported in .*\.zshrc/);
   assert.ok(!out.includes(FAKE_TOKEN), 'the value was printed');
+});
+
+test('--check: token only in the profile → probes that token, and blames the start, not the file', async (t) => {
+  if (spawnSync('zsh', ['-c', 'true']).status !== 0) return t.skip('no zsh here');
+  let received;
+  const stub = await adminStub((token, method) => {
+    received = token;
+    return permissions([2067])(token, method);
+  });
+  try {
+    const home = mkdtempSync(join(tmpdir(), 'setup-mcp-home-'));
+    writeFileSync(join(home, '.zshrc'), `export LEANSCOPE_PERSONAL_TEAM_REPOS_ACCESS_TOKEN="${FAKE_TOKEN}"\n`);
+    const { out } = await runCheck(['--clients', 'copilot-cli', '--probe-url', stub.url], { home });
+    assert.equal(received, FAKE_TOKEN); // read from the profile by an interactive shell
+    assert.match(out, /with the token in .*\.zshrc: ok, the token reaches repository 2067/);
+    assert.match(out, /was started without it/);
+    assert.match(out, /Reload Window or reopening it from the Dock is not enough/);
+    assert.doesNotMatch(out, /spelling/);
+    assert.ok(!out.includes(FAKE_TOKEN), 'the value was printed');
+  } finally {
+    stub.close();
+  }
 });
 
 test('--check probes leanscope-admin: a rejected token is named, a good one shows its repository', async () => {
@@ -523,7 +548,13 @@ test('the quickstart asks for the client first, never for the repository id, and
   const agents = read(kit, 'AGENTS.md');
   // The client question comes before the connection check.
   assert.ok(skill.indexOf('## 0. Which client and session are you in?') < skill.indexOf('## 1. Check the connection'));
-  assert.match(skill, /Ask this first, every time/);
+  assert.match(skill, /Ask this once per conversation/);
+  assert.match(skill, /\*\*don't ask again\*\*/);
+  assert.doesNotMatch(skill, /every time/);
+  // Secrets stay out of the chat: no reading profiles, no opening them in VS Code.
+  assert.match(skill, /Never read a file that may hold a secret/);
+  assert.doesNotMatch(skill, /`code ~\/\.(zshrc|bashrc)`/);
+  assert.match(agents, /Never read a file that may hold one/);
   // No fallback that asks the user for the id.
   assert.match(skill, /\*\*Never ask the user for it\.\*\*/);
   assert.doesNotMatch(skill, /ask the user for the id/i);

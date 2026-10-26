@@ -19,18 +19,27 @@ Everything runs **as the user**: their LeanScope repository, their personal team
 token, their own LLM keys.
 Nothing is billed to anyone else, and the engine never stores their keys.
 
-Two rules for the whole skill:
+Three rules for the whole skill:
 
+- **Never read a file that may hold a secret.** No `cat`, `view`, `head`, `grep` or reading tool on
+  `~/.zshrc`, `~/.bashrc`, `~/.zprofile`, `~/.zshenv`, `.env` or similar, not even "to check the
+  spelling". Never tell the user to open one **in VS Code** either: a file open in VS Code's editor
+  is attached to the chat as context, and every token in it goes to the model. `--check` (step 2)
+  looks into the profiles for you and never prints a value. If such a file shows up in the chat
+  anyway, don't quote from it, and tell the user to close that editor tab and treat the token and
+  keys in it as exposed: revoke and replace them.
 - **Diagnose it yourself, then hand over one action.** Run the checks below yourself. When the user
-  has to do something, give them **one command to run or one link to click** (`code ~/.zshrc`, a
-  markdown link to the file), never "go and look in directory X".
+  has to do something, give them **one command to run or one link to click** (`open -e ~/.zshrc` in
+  Terminal, a markdown link to a config file without secrets), never "go and look in directory X".
 - **Never ask for the repository id.** The token decides the repository (step 3).
 
 ## 0. Which client and session are you in?
 
-**Ask this first, every time, before anything else**: one question, a single choice, with what you
-detected marked as *(suggested)*. Use the client's choice dialog where it has one. Your system
-prompt or tool list usually names the client; in VS Code, the chat's **Session Target** control
+**Ask this once per conversation, before anything else**: one question, a single choice, with what
+you detected marked as *(suggested)*. Once the user has answered, or has named their client, that
+is the answer for the rest of the conversation: **don't ask again**, also not when you read this
+skill again or the user says "check again" or "I restarted". Use the client's choice dialog where
+it has one. Your system prompt or tool list usually names the client; in VS Code, the chat's **Session Target** control
 shows Local, Copilot, Claude, Codex or Cloud. Detection alone has been wrong before, and one click
 costs the user nothing.
 
@@ -122,9 +131,11 @@ to that token (ok and the repository, rejected, channel missing, no connection).
 next steps as commands. **Relay its findings in one or two sentences and pass on its `Next:` steps
 as they are**: they are already commands the user can run or files they can open.
 
-A new shell reads the user's profile, so "this shell" may see a variable that the client, started
-earlier, doesn't have. If `--check` says the token works but the client still gets a 401, the
-client needs the reload step (below), not a new token.
+Run by you, `--check` sees the client's own environment. **"not set in this shell, exported in
+~/.zshrc"** means the client was started without the profile (VS Code opened from the Dock or
+Spotlight, or not restarted): the file is fine, and only the reload step (below) is needed.
+`--check` then also tests the token from the profile, read by an interactive shell and never
+printed: "ok, the token reaches repository …" confirms it.
 
 ### Run the setup
 
@@ -173,8 +184,17 @@ the user to update it (README, *GitHub Copilot in VS Code*), then reload the win
 
 Where a client reads the environment, these are the variables, exactly as `.env.example` names
 them. The user puts them in their shell profile themselves; you never see or write the values. A
-project `.env` is not read by any MCP client. Give the user the command that opens the file, for
-example `code ~/.zshrc` (zsh, the macOS default) or `code ~/.bashrc`. `--check` names the right one.
+project `.env` is not read by any MCP client. Tell them exactly what to do, with a command that
+opens the file **outside VS Code**: in Terminal, `open -e ~/.zshrc` (macOS, opens TextEdit) or
+`nano ~/.zshrc`. Then: add these lines at the very end, with the values between the quotes, and
+save:
+
+```sh
+export LEANSCOPE_PERSONAL_TEAM_REPOS_ACCESS_TOKEN="…"
+export LEANSCOPE_OPENAI_API_KEY="…"
+```
+
+`--check` names the right profile file and prints these lines.
 
 | Variable                                                                                                               | What                                                              |
 | ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
@@ -192,7 +212,7 @@ reloads its servers. Tell the user the step for **their** client, as a command w
 | ----------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
 | Claude Code             | start a new session (accept the plugin install); `/mcp` shows the servers                                     | none needed; run `/plugin configure agent-kit@leanscope`, then start a new session          |
 | VS Code, Local session  | Command Palette → **MCP: List Servers** → each `leanscope-*` server → **Start** (or **Restart**); enter the token in the masked dialog | — (prompted). A server that fails: **MCP: List Servers** → server → **Show Output**        |
-| VS Code, Copilot session | open a new Copilot session                                                                                   | quit VS Code completely (⌘Q), run `code <project folder>` in a new terminal, open a new Copilot session |
+| VS Code, Copilot session | open a new Copilot session                                                                                   | quit VS Code completely (⌘Q), open a **new Terminal window**, run `code <project folder>` there, open a new Copilot session. Reload Window or reopening VS Code from the Dock is **not** enough: then VS Code doesn't hand the profile's variables to Copilot sessions |
 | Copilot CLI             | start a new `copilot` session; `/mcp` shows the servers                                                       | open a new terminal, run `copilot`                                                          |
 | Codex, Cursor           | restart the client                                                                                            | quit it, start it from a new terminal (`cursor <project folder>` for Cursor)                |
 

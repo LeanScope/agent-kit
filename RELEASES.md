@@ -1,5 +1,21 @@
 # Release notes
 
+## 0.4.1 — 2026-10-26
+
+- **Your token stays out of the chat.** The agent no longer reads your shell profile, not even to
+  "check the spelling", and no longer tells you to open it in VS Code: a file open in VS Code's
+  editor is attached to the chat, token included. To edit it, `--check` now gives you a Terminal
+  command that opens it outside VS Code (`open -e ~/.zshrc` on macOS) and the exact lines to add.
+  - **To do:** if your profile was open in VS Code while you chatted with an agent, or an agent
+    showed its contents, revoke your LeanScope token and LLM keys and create new ones.
+- **The client question is asked once per conversation.** After you answer it, the agent doesn't
+  ask again, also not after "check again".
+- **VS Code Copilot sessions: start VS Code from a terminal.** Opened from the Dock or Spotlight,
+  VS Code doesn't hand your shell profile's variables to Copilot sessions, and LeanScope gets an
+  empty token. Reload Window doesn't help either. `--check` now recognises this case (variable in
+  the profile, not in the session), tests the token from your profile without printing it, and
+  says what to do: quit VS Code (⌘Q), open a new Terminal window, run `code <project>`.
+
 ## 0.4.0 — 2026-10-26
 
 - **The quickstart asks which client first.** Before it checks or changes anything, your agent
