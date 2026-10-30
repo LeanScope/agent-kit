@@ -2,7 +2,7 @@
   "name": "leanscope-agent-kit",
   "displayName": "LeanScope Agent Kit",
   "description": "Model, run and extend LeanScope choreos — scripted conversations between AI personas and humans — from your coding agent, on your own LeanScope repository and your own LLM keys.",
-  "version": "0.4.2",
+  "version": "0.5.0",
   "author": {
     "name": "LeanScope"
   },
@@ -56,6 +56,14 @@
       "sensitive": true,
       "required": false,
       "default": ""
+    },
+    "typesafe": {
+      "type": "string",
+      "title": "TypeSafe API key",
+      "description": "Optional. Sent to the agent server per session, never stored there. Leave empty if your choreos don't use it.",
+      "sensitive": true,
+      "required": false,
+      "default": ""
     }
   },
   "mcpServers": {
@@ -81,7 +89,8 @@
         "X-LeanScope-Key-OpenAI": "${user_config.openai}",
         "X-LeanScope-Key-Anthropic": "${user_config.anthropic}",
         "X-LeanScope-Key-Mistral": "${user_config.mistral}",
-        "X-LeanScope-Key-ElevenLabs": "${user_config.elevenlabs}"
+        "X-LeanScope-Key-ElevenLabs": "${user_config.elevenlabs}",
+        "X-LeanScope-Key-TypeSafe": "${user_config.typesafe}"
       }
     }
   }

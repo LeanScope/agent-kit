@@ -37,6 +37,7 @@ export const SECRETS = [
   { id: 'anthropic', env: 'LEANSCOPE_ANTHROPIC_API_KEY', label: 'Anthropic API key', help: 'Optional: leave empty if your choreos don\'t use it.', required: false },
   { id: 'mistral', env: 'LEANSCOPE_MISTRAL_API_KEY', label: 'Mistral API key', help: 'Optional: leave empty if your choreos don\'t use it.', required: false },
   { id: 'elevenlabs', env: 'LEANSCOPE_ELEVENLABS_API_KEY', label: 'ElevenLabs API key', help: 'Optional: leave empty if your choreos don\'t use it.', required: false },
+  { id: 'typesafe', env: 'LEANSCOPE_TYPESAFE_API_KEY', label: 'TypeSafe API key', help: 'Optional: for 🎯 Decision Model steps. Leave empty if your choreos don\'t use them.', required: false },
 ];
 
 /** The optional keys a prompting client asks for unless told otherwise (each one is a dialog). */
@@ -58,6 +59,7 @@ export const SERVERS = [
       'X-LeanScope-Key-Anthropic': key('anthropic'),
       'X-LeanScope-Key-Mistral': key('mistral'),
       'X-LeanScope-Key-ElevenLabs': key('elevenlabs'),
+      'X-LeanScope-Key-TypeSafe': key('typesafe'),
     },
   },
 ];

@@ -3,7 +3,7 @@
 //
 //   npx -y github:leanscope/leanscope-agent-kit --clients <ids> [options]     (no clone needed)
 //   node scripts/setup-mcp.mjs --clients <ids> [--project <dir>] [--secrets prompt|env]
-//                              [--keys openai,anthropic,mistral,elevenlabs] [--dry-run]
+//                              [--keys openai,anthropic,mistral,elevenlabs,typesafe] [--dry-run]
 //   node scripts/setup-mcp.mjs --check --clients <id>       (diagnose, writes nothing)
 //   node scripts/setup-mcp.mjs --clean-root [--dry-run]     (tidy a workspace-root .mcp.json)
 //
@@ -71,7 +71,7 @@ const fail = (message) => {
 if (!['prompt', 'env'].includes(options.secrets)) fail(`--secrets must be prompt or env`);
 const unknownKeys = (options.keys ?? []).filter((k) => !SECRETS.some((s) => s.id === k && !s.required));
 if (unknownKeys.length > 0) {
-  fail(`unknown --keys ${unknownKeys.join(', ')} — use openai, anthropic, mistral, elevenlabs`);
+  fail(`unknown --keys ${unknownKeys.join(', ')} — use openai, anthropic, mistral, elevenlabs, typesafe`);
 }
 if (failed) process.exit(1);
 

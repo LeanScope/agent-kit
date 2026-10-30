@@ -41,7 +41,8 @@ open in VS Code is attached to the chat, token included. A project `.env` doesn'
 ```sh
 export LEANSCOPE_PERSONAL_TEAM_REPOS_ACCESS_TOKEN=…
 export LEANSCOPE_OPENAI_API_KEY=…
-# optional: LEANSCOPE_ANTHROPIC_API_KEY, LEANSCOPE_MISTRAL_API_KEY, LEANSCOPE_ELEVENLABS_API_KEY
+# optional: LEANSCOPE_ANTHROPIC_API_KEY, LEANSCOPE_MISTRAL_API_KEY, LEANSCOPE_ELEVENLABS_API_KEY,
+#           LEANSCOPE_TYPESAFE_API_KEY
 ```
 
 ## 2. Install
@@ -116,7 +117,7 @@ For *Local* sessions:
    (the Agent Plugins format has no inputs), which is why the servers live in your project. Then
    Command Palette → **MCP: List Servers**, start the `leanscope-*` servers: VS Code asks for your
    token and OpenAI key in a masked dialog and stores them encrypted. For other keys add
-   `--keys openai,anthropic,mistral,elevenlabs` (each key is one dialog); to use environment
+   `--keys openai,anthropic,mistral,elevenlabs,typesafe` (each key is one dialog); to use environment
    variables instead, add `--secrets env`.
 
 **Updating the plugin.** VS Code keeps the version you installed and doesn't update it on its own.

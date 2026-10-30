@@ -6,7 +6,7 @@
       "name": "leanscope-agent-kit",
       "source": "./",
       "description": "Model, run and extend LeanScope choreos from your coding agent.",
-      "version": "0.4.2"
+      "version": "0.5.0"
     }
   ]
 }

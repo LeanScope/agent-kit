@@ -1,5 +1,15 @@
 # Release notes
 
+## 0.5.0 — 2026-10-30
+
+- **TypeSafe API key for 🎯 Decision Model steps.** The kit can now send your own TypeSafe key to
+  the agent server, as `LEANSCOPE_TYPESAFE_API_KEY` (environment clients) or the new optional
+  "TypeSafe API key" field (Claude Code plugin). Leave it empty if your choreos don't use Decision
+  Model steps.
+  - **To do:** to use it, set `LEANSCOPE_TYPESAFE_API_KEY` and rerun the setup command for your
+    client (VS Code *Local* sessions: add `typesafe` to `--keys`). Claude Code asks for it when
+    you update the plugin.
+
 ## 0.4.2 — 2026-10-30
 
 - **New names: plugin `leanscope-agent-kit`, repository `leanscope/leanscope-agent-kit`.** Install

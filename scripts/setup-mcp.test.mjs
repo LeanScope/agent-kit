@@ -56,6 +56,7 @@ const envServers = (withType) => {
         'X-LeanScope-Key-Anthropic': '${env:LEANSCOPE_ANTHROPIC_API_KEY}',
         'X-LeanScope-Key-Mistral': '${env:LEANSCOPE_MISTRAL_API_KEY}',
         'X-LeanScope-Key-ElevenLabs': '${env:LEANSCOPE_ELEVENLABS_API_KEY}',
+        'X-LeanScope-Key-TypeSafe': '${env:LEANSCOPE_TYPESAFE_API_KEY}',
       },
     },
   };
@@ -73,7 +74,7 @@ bearer_token_env_var = "LEANSCOPE_PERSONAL_TEAM_REPOS_ACCESS_TOKEN"
 [mcp_servers.leanscope-agents]
 url = "${HOST}/mcp/agents"
 bearer_token_env_var = "LEANSCOPE_PERSONAL_TEAM_REPOS_ACCESS_TOKEN"
-env_http_headers = { "X-LeanScope-Key-OpenAI" = "LEANSCOPE_OPENAI_API_KEY", "X-LeanScope-Key-Anthropic" = "LEANSCOPE_ANTHROPIC_API_KEY", "X-LeanScope-Key-Mistral" = "LEANSCOPE_MISTRAL_API_KEY", "X-LeanScope-Key-ElevenLabs" = "LEANSCOPE_ELEVENLABS_API_KEY" }
+env_http_headers = { "X-LeanScope-Key-OpenAI" = "LEANSCOPE_OPENAI_API_KEY", "X-LeanScope-Key-Anthropic" = "LEANSCOPE_ANTHROPIC_API_KEY", "X-LeanScope-Key-Mistral" = "LEANSCOPE_MISTRAL_API_KEY", "X-LeanScope-Key-ElevenLabs" = "LEANSCOPE_ELEVENLABS_API_KEY", "X-LeanScope-Key-TypeSafe" = "LEANSCOPE_TYPESAFE_API_KEY" }
 # <<< leanscope agent-kit <<<`;
 
 // --- characterization -----------------------------------------------------------------------
@@ -284,7 +285,7 @@ test('the docs and skills name no variable that .env.example lacks', () => {
     }
     // Secret names only (other LEANSCOPE_* variables, such as a worker's settings, are fine).
     // `\b` doesn't match after `_`, so the second half finds bare `OPENAI_API_KEY` & co. only.
-    for (const [name] of text.matchAll(/\bLEANSCOPE_[A-Z_]*(?:TOKEN|API_KEY)\b|\b(?:OPENAI|ANTHROPIC|MISTRAL|ELEVENLABS)_API_KEY\b/g)) {
+    for (const [name] of text.matchAll(/\bLEANSCOPE_[A-Z_]*(?:TOKEN|API_KEY)\b|\b(?:OPENAI|ANTHROPIC|MISTRAL|ELEVENLABS|TYPESAFE)_API_KEY\b/g)) {
       assert.ok(ENV_NAMES.includes(name), `${file}: ${name} — use the names in .env.example`);
     }
   }

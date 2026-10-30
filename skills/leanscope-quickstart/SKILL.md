@@ -200,6 +200,7 @@ export LEANSCOPE_OPENAI_API_KEY="…"
 | ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
 | `LEANSCOPE_PERSONAL_TEAM_REPOS_ACCESS_TOKEN`                                                                           | their LeanScope personal team-repos access token                  |
 | `LEANSCOPE_OPENAI_API_KEY`, `LEANSCOPE_ANTHROPIC_API_KEY`, `LEANSCOPE_MISTRAL_API_KEY`, `LEANSCOPE_ELEVENLABS_API_KEY` | their own LLM keys; at least one completion model to run a choreo |
+| `LEANSCOPE_TYPESAFE_API_KEY`                                                                                           | optional; for 🎯 Decision Model steps                              |
 
 The token comes from https://app.leanscope.ai/ (avatar, top-right).
 
