@@ -48,6 +48,10 @@ Read these before writing anything — they are short and they are the contract:
 - Use `IS` to attach a resource to a step. `IS` declares what a resource *is*.
 - Write the English word "loop" into a step's `line` followed by an id — the engine treats that as a
   jump instruction.
+- Build a loop with a `successorRefs` entry pointing back or with `triggeringUserStoryRefs`. A loop is
+  the need's `revisitingScenarioStepRefs` (`concepts.md`, *Loops*).
+- Leave a human need without its input facet (a Message facet for free text), or phrase `userNeed` as
+  an instruction or a label instead of a need ("Die Person möchte …").
 - Delete anything the user did not ask you to delete. Deleting is `{ _guid, action: "DELETE" }`,
   relationships first.
 

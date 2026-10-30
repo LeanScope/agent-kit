@@ -52,7 +52,7 @@ Attachments hang off the scenario as relationships with `ownerRef` = the scenari
 | `line` | the lead persona's task for this beat |
 | `predecessorRefs` | steps that lead here — empty on the entry step |
 | `successorRefs` | steps that follow — empty on the last step |
-| `triggeringUserStoryRefs` | on a successor of a choice: the option (UserStory) that leads here; else empty |
+| `triggeringUserStoryRefs` | on a successor of a forward choice: the option (UserStory) that leads here; else empty. Never for loops |
 
 Leave `actorSymbolRef` empty: the scenario's lead persona speaks. Do not write `actions`,
 `questions`, `visuals` or `activeSuccessorRef` — sessions write those.
@@ -69,14 +69,23 @@ Leave `actorSymbolRef` empty: the scenario's lead persona speaks. Do not write `
 | `_guid` | your UUID |
 | `originScenarioRef` / `originScenarioStepRef` | the scenario / step where it is raised |
 | `actorRef` | a persona `_guid` (an AI participant) — or **omit it** for the human |
-| `userNeed` | what is needed; for a choice, the option's label |
-| `revisitingScenarioStepRefs` | steps that, once entered, return to one past this need's origin |
+| `userNeed` | the need, phrased as one: "Die Person möchte …" / "The user wants to …" — also for a choice option |
+| `revisitingScenarioStepRefs` | the loop: steps that ask this need again, then continue one step past its origin (`concepts.md`, *Loops*) |
+
+A **human need always gets an input facet** attached (`ownerRef` = the need, no predicate). For free
+text that is a Message facet — see below.
 
 ## Facets — questions and outputs
 
 A facet is a resource (`equipments`, `parameters: []`) plus its kind binding
 `facet --IS--> f20aa3bd-…` whose `parameterOverrides` hold its keywords. Every keyword is addressed by
 the **parameter guid** the Facet type declares; values are strings.
+
+**Message facet** (free text): first look for one the repository already has — a facet whose `key`
+is `message` (set in its `IS` binding's `parameterOverrides`, or in older repositories in its own
+`parameters`) — and attach that. Otherwise create one:
+`line: "Message"`, keywords `key = message`, `type = string`, `minItems = 1`, `maxItems = 1`
+(optionally `title`, `format = textarea`, `maxLength`).
 
 | Keyword | Parameter guid | Meaning |
 | --- | --- | --- |

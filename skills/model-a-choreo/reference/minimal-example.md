@@ -37,8 +37,16 @@ Optionally find an existing language model and Config to attach.
 for the human. On submit the choreo moves to `S2`, the host says goodbye, and the session ends
 (`S2` has no successors).
 
-**Variant — a free-text answer instead of a form**: drop `F`, `R1`, `R2` and add a UserStory
-`originScenarioRef: C`, `originScenarioStepRef: S1`, `userNeed: "The user tells their name"`,
-with no `actorRef`.
+**Variant — a free-text answer instead of a form**: keep `F` but make it a Message facet (`R1`
+overrides `key = message`, `type = string`, `minItems = 1`, `maxItems = 1`), add a human need `N`
+(UserStory `originScenarioRef: C`, `originScenarioStepRef: S1`,
+`userNeed: "The user wants to tell their name"`, no `actorRef`), and attach the facet to the need
+instead of the step: `R2` = `ownerRef: N`, `resourceRef: F`.
+
+**Variant — a conversation that loops**: as the free-text variant, but `S2` becomes
+`line: "Respond to what the user said and ask a follow-up question."` with `successorRefs: []`, and
+the need declares the loop: `N.revisitingScenarioStepRefs: [S2]`. After every answer the session
+returns to `S2` (the step after the need's origin `S1`) and asks `N` again with the same facet. No
+`triggeringUserStoryRefs`, and no `successorRefs` pointing back.
 
 Then run it with `run-a-choreo`: `session_start({ choreoScenarioGuid: C })`.

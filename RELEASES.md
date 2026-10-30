@@ -1,5 +1,16 @@
 # Release notes
 
+## 0.5.1 — 2026-10-30
+
+- **Loops are authored on the need.** `model-a-choreo` now builds a loop with the need's
+  `revisitingScenarioStepRefs`: the session asks the need again, with its own form, on the
+  revisited step and then continues one step past the need's origin. It no longer builds loops
+  with backward `successorRefs` or with `triggeringUserStoryRefs`, which is for forward choices
+  only. The references show the two-step chat loop as an example.
+- **Human needs get a form and read as needs.** A free-text answer is a human need with a Message
+  facet attached (the repository's own, if it has one), and `userNeed` is phrased as the need
+  ("Die Person möchte …"), not as an instruction or a button label.
+
 ## 0.5.0 — 2026-10-30
 
 - **TypeSafe API key for 🎯 Decision Model steps.** The kit can now send your own TypeSafe key to
