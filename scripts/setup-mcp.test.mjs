@@ -195,12 +195,30 @@ test('claude-code enables the kit plugin in .claude/settings.json and keeps othe
   const { out } = run(['--clients', 'claude-code'], { dir });
   const settings = json(dir, '.claude', 'settings.json');
   assert.deepEqual(settings.permissions, { allow: ['x'] });
-  assert.deepEqual(settings.enabledPlugins, { 'other@m': false, 'agent-kit@leanscope': true });
+  assert.deepEqual(settings.enabledPlugins, { 'other@m': false, 'leanscope-agent-kit@leanscope': true });
   assert.deepEqual(settings.extraKnownMarketplaces, {
-    leanscope: { source: { source: 'github', repo: 'leanscope/agent-kit' } },
+    leanscope: { source: { source: 'github', repo: 'leanscope/leanscope-agent-kit' } },
   });
   assert.doesNotMatch(read(dir, '.claude', 'settings.json'), /TOKEN|API_KEY/);
-  assert.match(out, /\/plugin configure agent-kit@leanscope/);
+  assert.match(out, /\/plugin configure leanscope-agent-kit@leanscope/);
+});
+
+test('claude-code migrates the pre-0.4.2 plugin id and the old repo', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'setup-mcp-'));
+  mkdirSync(join(dir, '.claude'));
+  writeFileSync(
+    join(dir, '.claude', 'settings.json'),
+    JSON.stringify({
+      extraKnownMarketplaces: { leanscope: { source: { source: 'github', repo: 'leanscope/agent-kit' } } },
+      enabledPlugins: { 'agent-kit@leanscope': true },
+    }),
+  );
+  run(['--clients', 'claude-code'], { dir });
+  const settings = json(dir, '.claude', 'settings.json');
+  assert.deepEqual(settings.enabledPlugins, { 'leanscope-agent-kit@leanscope': true });
+  assert.deepEqual(settings.extraKnownMarketplaces, {
+    leanscope: { source: { source: 'github', repo: 'leanscope/leanscope-agent-kit' } },
+  });
 });
 
 test('vscode promises the masked prompt for Local sessions only, and sends Copilot sessions to copilot-cli', () => {
@@ -601,7 +619,7 @@ test('every plugin manifest carries the same version', () => {
   assert.match(read(kit, 'RELEASES.md'), new RegExp(`## ${versions[0].replaceAll('.', '\\.')} `));
 });
 
-test('package.json runs the setup script, so `npx github:leanscope/agent-kit` needs no clone', () => {
+test('package.json runs the setup script, so `npx github:leanscope/leanscope-agent-kit` needs no clone', () => {
   const kit = join(here, '..');
   const { bin, dependencies } = json(kit, 'package.json');
   assert.deepEqual(Object.values(bin), ['scripts/setup-mcp.mjs']); // npx picks the only bin

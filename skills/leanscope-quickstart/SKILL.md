@@ -123,7 +123,7 @@ node <kit>/scripts/setup-mcp.mjs --check --clients <id>
 ```
 
 (`<kit>` is two folders up from this `SKILL.md`. Without a copy of the kit:
-`npx -y github:leanscope/agent-kit --check --clients <id>`.)
+`npx -y github:leanscope/leanscope-agent-kit --check --clients <id>`.)
 
 It reports: whether the client's file registers the three servers, whether each variable is set in
 this shell and exported in a shell profile (yes/no, the name only), and what `leanscope-admin` says
@@ -148,11 +148,11 @@ preview the change:
 - If this skill sits in a full copy of the kit (a plugin install or a clone), the script is
   `../../scripts/setup-mcp.mjs`, relative to this `SKILL.md`:
   `node <that path> --clients <id>`.
-- Otherwise, with no copy of the kit at hand: `npx -y github:leanscope/agent-kit --clients <id>`.
+- Otherwise, with no copy of the kit at hand: `npx -y github:leanscope/leanscope-agent-kit --clients <id>`.
 
 For Claude Code, `claude-code` enables the kit's plugin, which brings the servers. Claude Code offers
 the install on the next session start (you can't run `/plugin` yourself), asks for the secrets and
-keeps them in the OS credential store; `/plugin configure agent-kit@leanscope` changes them.
+keeps them in the OS credential store; `/plugin configure leanscope-agent-kit@leanscope` changes them.
 
 A plugin installed in **VS Code does not cover Claude Code** in the same editor, and the other way
 round: each has its own install.
@@ -210,7 +210,7 @@ reloads its servers. Tell the user the step for **their** client, as a command w
 
 | Client                  | After a config change                                                                                         | After setting or changing a variable                                                        |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| Claude Code             | start a new session (accept the plugin install); `/mcp` shows the servers                                     | none needed; run `/plugin configure agent-kit@leanscope`, then start a new session          |
+| Claude Code             | start a new session (accept the plugin install); `/mcp` shows the servers                                     | none needed; run `/plugin configure leanscope-agent-kit@leanscope`, then start a new session          |
 | VS Code, Local session  | Command Palette → **MCP: List Servers** → each `leanscope-*` server → **Start** (or **Restart**); enter the token in the masked dialog | — (prompted). A server that fails: **MCP: List Servers** → server → **Show Output**        |
 | VS Code, Copilot session | open a new Copilot session                                                                                   | quit VS Code completely (⌘Q), open a **new Terminal window**, run `code <project folder>` there, open a new Copilot session. Reload Window or reopening VS Code from the Dock is **not** enough: then VS Code doesn't hand the profile's variables to Copilot sessions |
 | Copilot CLI             | start a new `copilot` session; `/mcp` shows the servers                                                       | open a new terminal, run `copilot`                                                          |

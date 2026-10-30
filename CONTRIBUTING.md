@@ -14,7 +14,7 @@ kit, start with the [README](README.md).
   anything. Write the entry as part of the change, once it has been tested, not before.
 - **Version.** These six manifests carry one version, and they change together (a test checks
   it):
-  - `package.json` (only for `npx github:leanscope/agent-kit`, which runs the setup script; no
+  - `package.json` (only for `npx github:leanscope/leanscope-agent-kit`, which runs the setup script; no
     dependencies, not published to npm)
   - `plugin.json` (Agent Plugins 1.0, read by VS Code and Copilot CLI: skills only. No root `mcp.json`: the Agent Plugins format has no `inputs`, so it can't ask for a token, VS Code would load its servers next to the project's, and a test enforces this)
   - `.claude-plugin/plugin.json`

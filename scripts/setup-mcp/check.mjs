@@ -129,7 +129,7 @@ export async function check(context, client, options, deps = {}) {
     }
     if (!readsEnv && result.ok) {
       say('–', client.id === 'claude-code'
-        ? 'This probe used the environment variable; Claude Code uses the token from its plugin settings. If its servers still fail, run `/plugin configure agent-kit@leanscope`.'
+        ? 'This probe used the environment variable; Claude Code uses the token from its plugin settings. If its servers still fail, run `/plugin configure leanscope-agent-kit@leanscope`.'
         : 'This probe used the environment variable; a Local session uses the token typed into its dialog.');
     }
   }

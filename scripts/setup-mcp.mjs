@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Connect your coding agent to LeanScope: writes the MCP configuration for one or more clients.
 //
-//   npx -y github:leanscope/agent-kit --clients <ids> [options]     (no clone needed)
+//   npx -y github:leanscope/leanscope-agent-kit --clients <ids> [options]     (no clone needed)
 //   node scripts/setup-mcp.mjs --clients <ids> [--project <dir>] [--secrets prompt|env]
 //                              [--keys openai,anthropic,mistral,elevenlabs] [--dry-run]
 //   node scripts/setup-mcp.mjs --check --clients <id>       (diagnose, writes nothing)

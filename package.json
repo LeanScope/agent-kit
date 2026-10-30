@@ -1,10 +1,10 @@
 {
   "name": "leanscope-agent-kit",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "private": true,
-  "description": "Connect your coding agent to LeanScope: `npx -y github:leanscope/agent-kit --clients <client>` writes the MCP configuration. No dependencies.",
-  "homepage": "https://github.com/leanscope/agent-kit",
-  "repository": "github:leanscope/agent-kit",
+  "description": "Connect your coding agent to LeanScope: `npx -y github:leanscope/leanscope-agent-kit --clients <client>` writes the MCP configuration. No dependencies.",
+  "homepage": "https://github.com/leanscope/leanscope-agent-kit",
+  "repository": "github:leanscope/leanscope-agent-kit",
   "license": "MIT",
   "bin": {
     "leanscope-setup-mcp": "scripts/setup-mcp.mjs"

@@ -16,9 +16,9 @@ export const MCP_HOST = `https://${STAGE}mcp.leanscope.ai`;
 export const AGENT_API_DOCS = `https://${STAGE}api.agents.leanscope.ai/api/v1/docs`;
 
 /** Where the kit lives on GitHub, and its Claude Code marketplace and plugin names. */
-export const KIT_REPO = 'leanscope/agent-kit';
+export const KIT_REPO = 'leanscope/leanscope-agent-kit';
 export const MARKETPLACE = 'leanscope';
-export const PLUGIN = 'agent-kit';
+export const PLUGIN = 'leanscope-agent-kit';
 
 /**
  * The secrets the servers need. `id` is how writers refer to one; `env` is the variable name for

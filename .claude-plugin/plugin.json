@@ -2,12 +2,12 @@
   "name": "leanscope-agent-kit",
   "displayName": "LeanScope Agent Kit",
   "description": "Model, run and extend LeanScope choreos — scripted conversations between AI personas and humans — from your coding agent, on your own LeanScope repository and your own LLM keys.",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "author": {
     "name": "LeanScope"
   },
-  "homepage": "https://github.com/leanscope/agent-kit",
-  "repository": "https://github.com/leanscope/agent-kit",
+  "homepage": "https://github.com/leanscope/leanscope-agent-kit",
+  "repository": "https://github.com/leanscope/leanscope-agent-kit",
   "license": "MIT",
   "keywords": [
     "leanscope",

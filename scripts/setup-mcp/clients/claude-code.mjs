@@ -7,6 +7,9 @@ import { join } from 'node:path';
 import { KIT_REPO, MARKETPLACE, PLUGIN } from '../catalog.mjs';
 import { parse, stringify } from '../json.mjs';
 
+/** The plugin id before 0.4.2. Removed on setup so a project doesn't enable the kit twice. */
+const LEGACY_PLUGIN = `agent-kit@${MARKETPLACE}`;
+
 export default {
   id: 'claude-code',
   name: 'Claude Code',
@@ -19,10 +22,12 @@ export default {
 
   merge(text, { marketplace, plugin }, file) {
     const settings = parse(text, file);
+    const { [LEGACY_PLUGIN]: _legacy, ...enabledPlugins } = settings.enabledPlugins ?? {};
     return stringify({
       ...settings,
+      // Overwriting the marketplace entry also moves projects off the old leanscope/agent-kit repo.
       extraKnownMarketplaces: { ...(settings.extraKnownMarketplaces ?? {}), [MARKETPLACE]: marketplace },
-      enabledPlugins: { ...(settings.enabledPlugins ?? {}), [plugin]: true },
+      enabledPlugins: { ...enabledPlugins, [plugin]: true },
     });
   },
 

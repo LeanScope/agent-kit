@@ -1,5 +1,21 @@
 # Release notes
 
+## 0.4.2 — 2026-10-30
+
+- **New names: plugin `leanscope-agent-kit`, repository `leanscope/leanscope-agent-kit`.** Install
+  with `/plugin marketplace add leanscope/leanscope-agent-kit` and
+  `/plugin install leanscope-agent-kit@leanscope`; the setup command is now
+  `npx -y github:leanscope/leanscope-agent-kit --clients <client>`. The old repository URL keeps
+  working through GitHub's redirect.
+  - **To do (Claude Code):** run `npx -y github:leanscope/leanscope-agent-kit --clients claude-code`
+    once. It replaces `agent-kit@leanscope` in `.claude/settings.json` with the new id and points
+    the marketplace at the new repository. Then run `/plugin uninstall agent-kit@leanscope` if the
+    old plugin is still installed.
+- **Starter template for Angular:**
+  [leanscope-agent-kit-angular-quickstart](https://github.com/LeanScope/leanscope-agent-kit-angular-quickstart)
+  is a repository to fork. It comes with the kit enabled and an Angular client for the agent
+  server.
+
 ## 0.4.1 — 2026-10-26
 
 - **Your token stays out of the chat.** The agent no longer reads your shell profile, not even to

@@ -53,7 +53,7 @@ To connect the MCP servers by hand, run the setup script in your project; it nee
 clone:
 
 ```sh
-npx -y github:leanscope/agent-kit --clients <client>
+npx -y github:leanscope/leanscope-agent-kit --clients <client>
 ```
 
 It writes references only, never a secret, and keeps every other server in the file. From a clone,
@@ -62,27 +62,27 @@ It writes references only, never a secret, and keeps every other server in the f
 ### Claude Code
 
 ```
-/plugin marketplace add leanscope/agent-kit
-/plugin install agent-kit@leanscope
+/plugin marketplace add leanscope/leanscope-agent-kit
+/plugin install leanscope-agent-kit@leanscope
 ```
 
 The plugin brings the skills and all three MCP servers, and asks for the token and keys while it
-installs. To change them later: `/plugin configure agent-kit@leanscope`. (The shell command
+installs. To change them later: `/plugin configure leanscope-agent-kit@leanscope`. (The shell command
 `claude plugin install` doesn't ask; run `/plugin configure` afterwards.)
 
 This also applies to the **Claude Code extension in VS Code**: a plugin installed for GitHub
 Copilot in VS Code does not reach Claude Code. Each needs its own install.
 
 Your agent can't run `/plugin`, but it can enable the plugin for the project:
-`npx -y github:leanscope/agent-kit --clients claude-code` adds this to `.claude/settings.json`, and
+`npx -y github:leanscope/leanscope-agent-kit --clients claude-code` adds this to `.claude/settings.json`, and
 Claude Code offers the install when the next session starts:
 
 ```json
 {
   "extraKnownMarketplaces": {
-    "leanscope": { "source": { "source": "github", "repo": "leanscope/agent-kit" } }
+    "leanscope": { "source": { "source": "github", "repo": "leanscope/leanscope-agent-kit" } }
   },
-  "enabledPlugins": { "agent-kit@leanscope": true }
+  "enabledPlugins": { "leanscope-agent-kit@leanscope": true }
 }
 ```
 
@@ -102,17 +102,17 @@ The chat's **Session Target** control picks the harness, and each reads its own 
 Set up the one you use. If you use both, VS Code Local sessions can list the servers twice; the
 setup script warns when that happens. Don't add a workspace-root `.mcp.json` for the kit: VS Code
 and Copilot CLI load it on top and the servers show up twice. If one is already there (or an empty
-one is left over), `npx -y github:leanscope/agent-kit --clean-root` removes the `leanscope-*`
+one is left over), `npx -y github:leanscope/leanscope-agent-kit --clean-root` removes the `leanscope-*`
 entries and deletes the file once nothing else is in it.
 
 For *Local* sessions:
 
 1. Install the plugin: Command Palette → **Chat: Install Plugin From Source** →
-   `https://github.com/leanscope/agent-kit` (or add `"chat.plugins.marketplaces": ["leanscope/agent-kit"]`
+   `https://github.com/leanscope/leanscope-agent-kit` (or add `"chat.plugins.marketplaces": ["leanscope/leanscope-agent-kit"]`
    to your settings). VS Code also discovers the skills when this repository is cloned into
    `.agents/skills`.
 2. Ask your agent *"Set up LeanScope in this project."* It writes `.vscode/mcp.json` for you (or run
-   `npx -y github:leanscope/agent-kit --clients vscode` yourself). A plugin can't ask for secrets
+   `npx -y github:leanscope/leanscope-agent-kit --clients vscode` yourself). A plugin can't ask for secrets
    (the Agent Plugins format has no inputs), which is why the servers live in your project. Then
    Command Palette → **MCP: List Servers**, start the `leanscope-*` servers: VS Code asks for your
    token and OpenAI key in a masked dialog and stores them encrypted. For other keys add
@@ -128,8 +128,8 @@ or 0.3.1 with its root `mcp.json`): update it.
 
 ### GitHub Copilot CLI
 
-1. Optional, for the skills: `copilot plugin install leanscope/agent-kit`.
-2. `npx -y github:leanscope/agent-kit --clients copilot-cli`
+1. Optional, for the skills: `copilot plugin install leanscope/leanscope-agent-kit`.
+2. `npx -y github:leanscope/leanscope-agent-kit --clients copilot-cli`
    → adds the servers to `~/.copilot/mcp-config.json` (or `$COPILOT_HOME`), for every project and
    for VS Code *Copilot* sessions too.
    They reference your environment variables (`${LEANSCOPE_…}`), so set them first (see
@@ -137,10 +137,10 @@ or 0.3.1 with its root `mcp.json`): update it.
 
 ### OpenAI Codex
 
-1. `codex plugin marketplace add leanscope/agent-kit`, then install **agent-kit** from `/plugins`
+1. `codex plugin marketplace add leanscope/leanscope-agent-kit`, then install **leanscope-agent-kit** from `/plugins`
    (CLI). In the IDE extension, plugins are not available yet: clone this repository and copy
    `skills/*` into your project's `.agents/skills/`.
-2. `npx -y github:leanscope/agent-kit --clients codex`
+2. `npx -y github:leanscope/leanscope-agent-kit --clients codex`
    → writes the `[mcp_servers.leanscope-*]` block into `.codex/config.toml`, which Codex reads only
    in trusted projects. Token and keys come from your environment variables
    (`bearer_token_env_var`, `env_http_headers`).
@@ -149,7 +149,7 @@ or 0.3.1 with its root `mcp.json`): update it.
 
 1. Install the plugin from the marketplace, or copy this repository to
    `~/.cursor/plugins/local/agent-kit`.
-2. `npx -y github:leanscope/agent-kit --clients cursor`
+2. `npx -y github:leanscope/leanscope-agent-kit --clients cursor`
    → writes `.cursor/mcp.json`, referencing your environment variables (`${env:…}`).
 
 ## 3. First steps
@@ -164,7 +164,7 @@ It shows whether the token is set and exported in your shell profile, what LeanS
 what to do next:
 
 ```sh
-npx -y github:leanscope/agent-kit --check --clients <client>
+npx -y github:leanscope/leanscope-agent-kit --check --clients <client>
 ```
 
 Then, for example:
@@ -190,6 +190,12 @@ The agent server's REST API is documented at `https://dev.api.agents.leanscope.a
 
 `examples/interview-from-guide/` — an interview led by an AI persona over a live voice call, whose
 questions come from an uploaded guide and whose answers are kept in the choreo's Inventory.
+
+## Starter templates
+
+- [leanscope-agent-kit-angular-quickstart](https://github.com/LeanScope/leanscope-agent-kit-angular-quickstart):
+  fork it to build an Angular MVP on a choreo. The kit is already enabled for Claude Code, and the
+  app has a client for the agent server's REST + SSE API.
 
 ## Security
 
